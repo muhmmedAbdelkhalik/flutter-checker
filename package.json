@@ -2,7 +2,7 @@
   "name": "flutter-checker",
   "displayName": "Flutter Checker",
   "description": "Check for outdated packages in Flutter/Dart pubspec.yaml files",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "publisher": "abdelkhalik",
   "icon": "icon.png",
   "repository": {
@@ -16,7 +16,11 @@
     "Other"
   ],
   "activationEvents": [
-    "onLanguage:yaml"
+    "onCommand:flutter-checker.checkOutdated",
+    "onCommand:flutter-checker.clearHighlights",
+    "onCommand:flutter-checker.openPubDev",
+    "onLanguage:yaml",
+    "workspaceContains:**/pubspec.yaml"
   ],
   "main": "./out/extension.js",
   "contributes": {

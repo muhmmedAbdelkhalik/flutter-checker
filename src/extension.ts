@@ -21,7 +21,8 @@ export function activate(context: vscode.ExtensionContext) {
     );
 
     const clearHighlightsCommand = vscode.commands.registerCommand(
-        'flutter-checker.clearHighlights',
+        'flutter-checker.clearHighlights'
+        ,
         () => {
             decorationProvider.clearDecorations();
         }

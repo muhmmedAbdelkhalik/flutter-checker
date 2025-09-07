@@ -11,8 +11,8 @@ create_icon.html
 icon_base64.txt
 icon.svg
 
-# Node modules (already ignored by default)
-node_modules/**
+# Node modules: keep production deps so extension can run
+# (vsce prunes devDependencies automatically)
 
 # Build artifacts
 *.vsix
