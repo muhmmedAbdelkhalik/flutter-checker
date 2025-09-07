@@ -1,5 +1,10 @@
 # Flutter Checker
 
+[![VS Code Marketplace](https://img.shields.io/visual-studio-marketplace/v/abdelkhalik.flutter-checker?label=VS%20Code%20Marketplace&color=blue)](https://marketplace.visualstudio.com/items?itemName=abdelkhalik.flutter-checker)
+[![Downloads](https://img.shields.io/visual-studio-marketplace/d/abdelkhalik.flutter-checker?label=Downloads&color=green)](https://marketplace.visualstudio.com/items?itemName=abdelkhalik.flutter-checker)
+[![Rating](https://img.shields.io/visual-studio-marketplace/r/abdelkhalik.flutter-checker?label=Rating&color=yellow)](https://marketplace.visualstudio.com/items?itemName=abdelkhalik.flutter-checker)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+
 A VS Code extension that helps you identify outdated packages in your Flutter/Dart `pubspec.yaml` files by highlighting version lines with visual indicators.
 
 ## Features
@@ -93,9 +98,19 @@ You can customize the extension behavior in VS Code settings:
 4. Click Install
 
 ### From Source
-1. Clone this repository
-2. Run `npm install` to install dependencies
-3. Run `npm run compile` to build the extension
+1. Clone this repository:
+   ```bash
+   git clone https://github.com/abdelkhalik/flutter-checker.git
+   cd flutter-checker
+   ```
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Build the extension:
+   ```bash
+   npm run compile
+   ```
 4. Press `F5` to run the extension in a new Extension Development Host window
 
 ## Development
