@@ -1,0 +1,24 @@
+# Source files
+src/**
+*.ts
+tsconfig.json
+
+# Development files
+.vscode/**
+.git/**
+.gitignore
+create_icon.html
+icon_base64.txt
+icon.svg
+
+# Node modules (already ignored by default)
+node_modules/**
+
+# Build artifacts
+*.vsix
+extension/
+
+# Documentation
+DEPLOYMENT.md
+INSTALLATION.md
+sample-pubspec.yaml

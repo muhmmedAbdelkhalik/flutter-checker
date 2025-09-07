@@ -1,0 +1,28 @@
+name: sample_flutter_app
+description: A sample Flutter application for testing the Flutter Checker extension.
+
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  
+  # These packages might be outdated for testing
+  cupertino_icons: ^1.0.2
+  http: ^0.13.5
+  provider: ^6.0.5
+  shared_preferences: ^2.2.2
+  path_provider: ^2.1.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.0
+
+flutter:
+  uses-material-design: true
