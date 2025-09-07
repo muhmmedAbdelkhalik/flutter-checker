@@ -100,7 +100,7 @@ You can customize the extension behavior in VS Code settings:
 ### From Source
 1. Clone this repository:
    ```bash
-   git clone https://github.com/abdelkhalik/flutter-checker.git
+   git clone https://github.com/muhmmedAbdelkhalik/flutter-checker.git
    cd flutter-checker
    ```
 2. Install dependencies:
