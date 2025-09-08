@@ -1,3 +1,11 @@
+## v1.0.9 2025-09-08
+
+### Changed
+
+- Fix version bump workflow to commit directly instead of creating PR
+- Update changelog dates to September 2025
+- Add CHANGELOG.md for version bump workflow
+
 # Changelog
 
 All notable changes to this project will be documented in this file.
