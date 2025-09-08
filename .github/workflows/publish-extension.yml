@@ -1,7 +1,8 @@
-name: Version Bump (Direct Commit)
+name: Publish Extension
 
 permissions:
   contents: write
+  pull-requests: write
 
 on:
   workflow_dispatch:
@@ -15,9 +16,14 @@ on:
           - patch
           - minor
           - major
+      publish:
+        description: 'Publish to VS Code Marketplace after version bump'
+        required: true
+        default: true
+        type: boolean
 
 jobs:
-  bump:
+  release:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -30,6 +36,9 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 20
+
+      - name: Install dependencies
+        run: npm ci
 
       - name: Get current version
         id: version
@@ -73,7 +82,10 @@ jobs:
           tail -n +9 CHANGELOG.md >> temp_changelog.md
           mv temp_changelog.md CHANGELOG.md
 
-      - name: Commit changes
+      - name: Build extension
+        run: npm run build
+
+      - name: Commit and tag changes
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
@@ -82,3 +94,30 @@ jobs:
           git tag "v$(node -p "require('./package.json').version")"
           git push origin main
           git push origin "v$(node -p "require('./package.json').version")"
+
+      - name: Publish to VS Code Marketplace
+        if: ${{ inputs.publish }}
+        uses: HaaLeo/publish-vscode-extension@v2
+        with:
+          pat: ${{ secrets.VSCE_PAT }}
+          registryUrl: https://marketplace.visualstudio.com
+          dependencies: false
+
+      - name: Create Release
+        if: ${{ inputs.publish }}
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ steps.bump.outputs.new }}
+          release_name: Release v${{ steps.bump.outputs.new }}
+          body: |
+            ## Changes in v${{ steps.bump.outputs.new }}
+            
+            This release includes:
+            - Version bump from v${{ steps.version.outputs.current }} to v${{ steps.bump.outputs.new }}
+            - Updated CHANGELOG.md
+            
+            See the [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md) for detailed changes.
+          draft: false
+          prerelease: false
