@@ -32,6 +32,8 @@ jobs:
         uses: taj54/universal-version-bump@v0.14.0
         with:
           release_type: ${{ inputs.release_type }}
-          git_tag: false
+          git_tag: true
+          create_pull_request: false
+          commit_changes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
