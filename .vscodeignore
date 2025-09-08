@@ -11,12 +11,26 @@ create_icon.html
 icon_base64.txt
 icon.svg
 
-# Node modules: keep production deps so extension can run
-# (vsce prunes devDependencies automatically)
+# Node modules - exclude most, only include essential runtime deps
+node_modules/**
+!node_modules/axios/**
+!node_modules/js-yaml/**
+!node_modules/semver/**
+!node_modules/@types/**
 
 # Build artifacts
 *.vsix
 extension/
+.vsix-unpacked/
+
+# Development and testing files
+*.log
+*.tmp
+.DS_Store
+Thumbs.db
+
+# CI/CD files
+.github/workflows/*.yml
 
 # Documentation
 DEPLOYMENT.md
