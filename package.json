@@ -87,6 +87,21 @@
           "type": "number",
           "default": 300,
           "description": "Interval in seconds between automatic checks"
+        },
+        "flutterChecker.patchUpdateColor": {
+          "type": "string",
+          "default": "#4ecdc4",
+          "description": "Color for patch updates (bug fixes). Uses theme-aware colors: light theme uses default, dark theme uses darker variant. Leave empty to use automatic theme colors."
+        },
+        "flutterChecker.minorUpdateColor": {
+          "type": "string",
+          "default": "#ffa726",
+          "description": "Color for minor updates (new features). Uses theme-aware colors: light theme uses default, dark theme uses darker variant. Leave empty to use automatic theme colors."
+        },
+        "flutterChecker.majorUpdateColor": {
+          "type": "string",
+          "default": "#ff6b6b",
+          "description": "Color for major updates (breaking changes). Uses theme-aware colors: light theme uses default, dark theme uses darker variant. Leave empty to use automatic theme colors."
         }
       }
     },

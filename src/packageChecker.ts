@@ -3,12 +3,19 @@ import * as yaml from 'js-yaml';
 import axios from 'axios';
 import * as semver from 'semver';
 
+export enum UpdateType {
+    PATCH = 'patch',
+    MINOR = 'minor',
+    MAJOR = 'major'
+}
+
 export interface OutdatedPackage {
     name: string;
     currentVersion: string;
     latestVersion: string;
     lineNumber: number;
     range: vscode.Range;
+    updateType: UpdateType;
 }
 
 export class PackageChecker {
@@ -67,12 +74,15 @@ export class PackageChecker {
                         versionEnd
                     );
 
+                    const updateType = this.getUpdateType(currentVersion, latestVersion);
+
                     outdatedPackages.push({
                         name: packageName,
                         currentVersion,
                         latestVersion,
                         lineNumber,
-                        range
+                        range,
+                        updateType
                     });
                 }
             }
@@ -153,6 +163,23 @@ export class PackageChecker {
         } catch (error) {
             console.error('Error comparing versions:', error);
             return false;
+        }
+    }
+
+    private getUpdateType(currentVersion: string, latestVersion: string): UpdateType {
+        try {
+            // Use semver to determine the type of update
+            if (semver.major(currentVersion) !== semver.major(latestVersion)) {
+                return UpdateType.MAJOR;
+            } else if (semver.minor(currentVersion) !== semver.minor(latestVersion)) {
+                return UpdateType.MINOR;
+            } else {
+                return UpdateType.PATCH;
+            }
+        } catch (error) {
+            console.error('Error determining update type:', error);
+            // Default to major if we can't determine the type
+            return UpdateType.MAJOR;
         }
     }
 
