@@ -2,7 +2,7 @@
   "name": "flutter-checker",
   "displayName": "Flutter Checker",
   "description": "Check for outdated packages in Flutter/Dart pubspec.yaml files",
-  "version": "1.0.3",
+  "version": "1.0.5",
   "publisher": "abdelkhalik",
   "icon": "icon.png",
   "repository": {
@@ -15,6 +15,10 @@
   "categories": [
     "Other"
   ],
+  "galleryBanner": {
+    "color": "#1e1e1e",
+    "theme": "dark"
+  },
   "activationEvents": [
     "onCommand:flutter-checker.checkOutdated",
     "onCommand:flutter-checker.clearHighlights",

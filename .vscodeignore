@@ -22,3 +22,6 @@ extension/
 DEPLOYMENT.md
 INSTALLATION.md
 sample-pubspec.yaml
+
+# Keep screenshots for marketplace
+!screenshot.png

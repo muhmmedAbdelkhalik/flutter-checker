@@ -7,6 +7,12 @@
 
 A VS Code extension that helps you identify outdated packages in your Flutter/Dart `pubspec.yaml` files by highlighting version lines with visual indicators.
 
+## Preview
+
+![Flutter Checker in Action](https://raw.githubusercontent.com/muhmmedAbdelkhalik/flutter-checker/main/screenshot.png)
+
+*The extension highlights outdated packages with version comparisons and interactive hover tooltips*
+
 ## Features
 
 - 🔍 **Automatic Detection**: Automatically checks for outdated packages when you open or modify `pubspec.yaml` files
