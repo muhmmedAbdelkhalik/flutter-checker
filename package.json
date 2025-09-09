@@ -4,7 +4,7 @@
   "description": "Check for outdated packages in Flutter/Dart pubspec.yaml files",
   "version": "1.0.10",
   "publisher": "abdelkhalik",
-  "icon": "icon.png",
+  "icon": "assets/icon.png",
   "repository": {
     "type": "git",
     "url": "https://github.com/muhmmedAbdelkhalik/flutter-checker"
