@@ -303,9 +303,9 @@
     },
     {
       "name": "web",
-      "rootUri": "file:///Users/abdelkhalik/.pub-cache/hosted/pub.dev/web-1.1.1",
+      "rootUri": "file:///Users/abdelkhalik/.pub-cache/hosted/pub.dev/web-0.5.1",
       "packageUri": "lib/",
-      "languageVersion": "3.4"
+      "languageVersion": "3.3"
     },
     {
       "name": "xdg_directories",

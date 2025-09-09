@@ -23,6 +23,8 @@ A VS Code extension that helps you identify outdated packages in your Flutter/Da
 - 🎛️ **Highly Configurable**: Customize colors for each update type, theme-aware color schemes, and more
 - 📈 **Progress Indicators**: Visual progress feedback during package checking
 - 🎯 **Precise Highlighting**: Highlights only the version specification, not the entire line
+- 👁️ **Update Preview**: See exactly what changes will be made before applying updates with an interactive preview
+- ✅ **Safe Updates**: Apply updates with confidence using the preview feature
 - 🛡️ **Production Ready**: Enterprise-grade error handling, network resilience, and memory management
 - 🔧 **Reliable**: 99% command registration reliability with automatic verification and user feedback
 
@@ -40,6 +42,11 @@ A VS Code extension that helps you identify outdated packages in your Flutter/Da
    - Rich hover tooltips with update type descriptions
    - Overview ruler indicators with appropriate colors
    - Clickable links to pub.dev
+5. **Update Preview**: Before applying updates, you can preview exactly what changes will be made:
+   - Interactive webview showing before/after diff for each package
+   - Color-coded update type badges (Patch/Minor/Major)
+   - Line-by-line preview of the changes
+   - Apply or cancel options with full control
 
 ## Usage
 
@@ -59,6 +66,19 @@ To remove all highlights:
 1. Open Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`)
 2. Run `Flutter Checker: Clear Package Highlights`
 
+### Update Preview
+To preview and apply updates safely:
+1. Open Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`)
+2. Run `Flutter Checker: Show Update Preview`
+3. Review the changes in the preview panel:
+   - See before/after diff for each outdated package
+   - Check update type badges (Patch/Minor/Major)
+   - Preview exact line changes in your pubspec.yaml
+4. Choose to **Apply Updates** or **Cancel**
+5. Updates are applied directly to your pubspec.yaml file
+
+Alternatively, you can use the **Preview** button in the editor title bar when viewing a pubspec.yaml file.
+
 ### Navigation Features
 Rich interaction with outdated packages:
 
@@ -75,6 +95,7 @@ Rich interaction with outdated packages:
 
 3. **Command Palette**: Available commands:
    - `Flutter Checker: Check for Outdated Packages` - Manual check
+   - `Flutter Checker: Show Update Preview` - Preview and apply updates
    - `Flutter Checker: Clear Package Highlights` - Remove all highlights
    - `Flutter Checker: Open Package on pub.dev` - Open specific package
 
@@ -94,7 +115,10 @@ You can customize the extension behavior in VS Code settings:
   "flutterChecker.versionTextColor": "#ff6b6b",
   "flutterChecker.patchUpdateColor": "#4ecdc4",
   "flutterChecker.minorUpdateColor": "#ffa726",
-  "flutterChecker.majorUpdateColor": "#ff6b6b"
+  "flutterChecker.majorUpdateColor": "#ff6b6b",
+  "flutterChecker.previewEnabled": true,
+  "flutterChecker.autoApplyUpdates": false,
+  "flutterChecker.previewUpdateTypes": ["patch", "minor", "major"]
 }
 ```
 
@@ -115,11 +139,17 @@ You can customize the extension behavior in VS Code settings:
 - `minorUpdateColor`: Color for minor updates - new features (default: `#ffa726` / `#cc8500` for dark theme)
 - `majorUpdateColor`: Color for major updates - breaking changes (default: `#ff6b6b` / `#cc5555` for dark theme)
 
+#### Update Preview Settings
+- `previewEnabled`: Enable/disable the update preview feature (default: `true`)
+- `autoApplyUpdates`: Automatically apply updates without confirmation (⚠️ use with caution) (default: `false`)
+- `previewUpdateTypes`: Which update types to show in preview - array of `["patch", "minor", "major"]` (default: `["patch", "minor", "major"]`)
+
 > **Note**: Update type colors automatically adapt to your VS Code theme. Light theme uses the default colors, while dark theme uses darker variants for better visibility.
 
 ### Commands Available
 
 - `Flutter Checker: Check for Outdated Packages` - Manual check
+- `Flutter Checker: Show Update Preview` - Preview and apply updates
 - `Flutter Checker: Clear Package Highlights` - Remove highlights
 - `Flutter Checker: Open Package on pub.dev` - Open package page
 

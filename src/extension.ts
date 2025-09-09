@@ -1,20 +1,23 @@
 import * as vscode from 'vscode';
 import { PackageChecker } from './packageChecker';
 import { DecorationProvider } from './decorationProvider';
+import { UpdatePreviewProvider } from './updatePreviewProvider';
 
 // Extension module loaded
 
 let packageChecker: PackageChecker;
 let decorationProvider: DecorationProvider;
+let updatePreviewProvider: UpdatePreviewProvider;
 
 export function activate(context: vscode.ExtensionContext) {
     try {
         console.log('Flutter Checker extension is now active!');
         console.log('Extension mode:', context.extensionMode);
 
-        // Initialize the package checker and decoration provider
+        // Initialize the package checker, decoration provider, and update preview provider
         packageChecker = new PackageChecker();
         decorationProvider = new DecorationProvider();
+        updatePreviewProvider = new UpdatePreviewProvider();
         
         console.log('Package checker and decoration provider initialized');
 
@@ -42,6 +45,14 @@ export function activate(context: vscode.ExtensionContext) {
                     const url = `https://pub.dev/packages/${packageName}`;
                     vscode.env.openExternal(vscode.Uri.parse(url));
                 }
+            }
+        );
+
+        const showUpdatePreviewCommand = vscode.commands.registerCommand(
+            'flutter-checker.showUpdatePreview',
+            async () => {
+                console.log('Show update preview command triggered');
+                await showUpdatePreview();
             }
         );
 
@@ -132,7 +143,9 @@ export function activate(context: vscode.ExtensionContext) {
             checkOutdatedCommand,
             clearHighlightsCommand,
             openPubDevCommand,
+            showUpdatePreviewCommand,
             decorationProvider,
+            updatePreviewProvider,
             onDidOpenTextDocument,
             onDidChangeTextDocument,
             onDidSaveTextDocument,
@@ -198,6 +211,30 @@ async function checkOutdatedPackages() {
     }
 
     await checkOutdatedPackagesForDocument(activeEditor.document, activeEditor, true);
+}
+
+async function showUpdatePreview() {
+    const activeEditor = vscode.window.activeTextEditor;
+    if (!activeEditor || !activeEditor.document.fileName.endsWith('pubspec.yaml')) {
+        vscode.window.showWarningMessage('Please open a pubspec.yaml file first.');
+        return;
+    }
+
+    try {
+        // First check for outdated packages
+        const outdatedPackages = await packageChecker.checkOutdatedPackages(activeEditor.document);
+
+        if (outdatedPackages.length === 0) {
+            vscode.window.showInformationMessage('No outdated packages found.');
+            return;
+        }
+
+        // Show the update preview
+        await updatePreviewProvider.showUpdatePreview(outdatedPackages, activeEditor.document);
+    } catch (error) {
+        console.error('Error showing update preview:', error);
+        vscode.window.showErrorMessage('Failed to show update preview. Please try again.');
+    }
 }
 
 async function checkOutdatedPackagesForDocument(document: vscode.TextDocument, editor: vscode.TextEditor, showProgress: boolean = true) {
@@ -278,6 +315,12 @@ export function deactivate() {
         if (decorationProvider) {
             decorationProvider.dispose();
             decorationProvider = undefined as any;
+        }
+
+        // Dispose of update preview provider
+        if (updatePreviewProvider) {
+            updatePreviewProvider.dispose();
+            updatePreviewProvider = undefined as any;
         }
         
         // Clear cache

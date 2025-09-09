@@ -27,7 +27,8 @@
     "workspaceContains:**/pubspec.yaml",
     "onCommand:flutter-checker.checkOutdated",
     "onCommand:flutter-checker.clearHighlights",
-    "onCommand:flutter-checker.openPubDev"
+    "onCommand:flutter-checker.openPubDev",
+    "onCommand:flutter-checker.showUpdatePreview"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -47,12 +48,23 @@
         "command": "flutter-checker.clearHighlights",
         "title": "Clear Package Highlights",
         "category": "Flutter Checker"
+      },
+      {
+        "command": "flutter-checker.showUpdatePreview",
+        "title": "Show Update Preview",
+        "category": "Flutter Checker",
+        "icon": "$(preview)"
       }
     ],
     "menus": {
       "editor/title": [
         {
           "command": "flutter-checker.checkOutdated",
+          "group": "navigation",
+          "when": "resourceExtname == .yaml && editorLangId == yaml && resourceFilename == pubspec.yaml"
+        },
+        {
+          "command": "flutter-checker.showUpdatePreview",
           "group": "navigation",
           "when": "resourceExtname == .yaml && editorLangId == yaml && resourceFilename == pubspec.yaml"
         }
@@ -115,6 +127,25 @@
           "type": "string",
           "default": "#ff6b6b",
           "description": "Color for major updates (breaking changes). Uses theme-aware colors: light theme uses default, dark theme uses darker variant. Leave empty to use automatic theme colors."
+        },
+        "flutterChecker.previewEnabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable/disable the update preview feature"
+        },
+        "flutterChecker.autoApplyUpdates": {
+          "type": "boolean",
+          "default": false,
+          "description": "Automatically apply updates without showing confirmation dialog (use with caution)"
+        },
+        "flutterChecker.previewUpdateTypes": {
+          "type": "array",
+          "default": ["patch", "minor", "major"],
+          "items": {
+            "type": "string",
+            "enum": ["patch", "minor", "major"]
+          },
+          "description": "Which types of updates to show in the preview (patch, minor, major)"
         }
       }
     },
