@@ -20,10 +20,8 @@
     "theme": "dark"
   },
   "activationEvents": [
-    "onCommand:flutter-checker.checkOutdated",
-    "onCommand:flutter-checker.clearHighlights",
-    "onCommand:flutter-checker.openPubDev",
-    "onLanguage:yaml"
+    "onLanguage:yaml",
+    "onCommand:flutter-checker.checkOutdated"
   ],
   "main": "./out/extension.js",
   "contributes": {
