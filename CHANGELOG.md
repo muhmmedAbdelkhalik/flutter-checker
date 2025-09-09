@@ -7,10 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [1.1.0] - 2025-09-09
+## [1.1.0] - 2025-01-27
 
 ### Added
-- Automated version bump to 1.1.0
+- Color-coded update type highlighting (Patch, Minor, Major updates)
+- Theme-aware color schemes that adapt to light/dark themes
+- Rich hover tooltips with detailed update information and emoji indicators
+- Progress indicators during package checking with status messages
+- Intelligent caching system (5-minute cache duration) for better performance
+- Precise highlighting of version specifications only (not entire lines)
+- Enhanced configuration options for each update type color
+- Improved README documentation with comprehensive feature descriptions
+
+### Changed
+- Updated visual highlighting to use different colors for different update types:
+  - 🔧 Patch updates (bug fixes): Teal color scheme
+  - ✨ Minor updates (new features): Orange color scheme  
+  - ⚠️ Major updates (breaking changes): Red color scheme
+- Enhanced hover messages with update type descriptions and clickable pub.dev links
+- Reorganized project structure with assets directory for better organization
+- Updated package.json icon path to point to assets directory
+- Improved README with detailed usage instructions and configuration options
+
+### Fixed
+- Screenshot path references in README after moving assets to dedicated directory
+- Theme compatibility issues with automatic color adaptation
 
 
 ## [1.0.10] - 2025-09-08
