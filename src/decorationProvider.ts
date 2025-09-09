@@ -145,9 +145,7 @@ export class DecorationProvider {
         const updateTypeEmoji = this.getUpdateTypeEmoji(pkg.updateType);
         const updateTypeDescription = this.getUpdateTypeDescription(pkg.updateType);
         message.appendMarkdown(`**Update Type:** ${updateTypeEmoji} ${updateTypeDescription}\n\n`);
-        
-        message.appendMarkdown(`[Open on pub.dev](command:flutter-checker.openPubDev?${encodeURIComponent(JSON.stringify(pkg.name))})`);
-        
+
         message.isTrusted = true;
         return message;
     }

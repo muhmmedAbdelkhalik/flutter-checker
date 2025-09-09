@@ -26,8 +26,7 @@
     "onLanguage:yaml",
     "workspaceContains:**/pubspec.yaml",
     "onCommand:flutter-checker.checkOutdated",
-    "onCommand:flutter-checker.clearHighlights",
-    "onCommand:flutter-checker.openPubDev"
+    "onCommand:flutter-checker.clearHighlights"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -37,11 +36,6 @@
         "title": "Check for Outdated Packages",
         "category": "Flutter Checker",
         "icon": "$(sparkle)"
-      },
-      {
-        "command": "flutter-checker.openPubDev",
-        "title": "Open Package on pub.dev",
-        "category": "Flutter Checker"
       },
       {
         "command": "flutter-checker.clearHighlights",
@@ -115,6 +109,16 @@
           "type": "string",
           "default": "#ff6b6b",
           "description": "Color for major updates (breaking changes). Uses theme-aware colors: light theme uses default, dark theme uses darker variant. Leave empty to use automatic theme colors."
+        },
+        "flutterChecker.showStatusBar": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show status bar item with package update counts and checking status"
+        },
+        "flutterChecker.statusBarPriority": {
+          "type": "number",
+          "default": 100,
+          "description": "Priority position of the status bar item (higher numbers appear more to the left)"
         }
       }
     },

@@ -21,6 +21,11 @@ export interface OutdatedPackage {
 export class PackageChecker {
     private cache: Map<string, { version: string; timestamp: number }> = new Map();
     private readonly CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+    private statusCallback?: (message: string, progress?: number) => void;
+
+    setStatusCallback(callback: (message: string, progress?: number) => void) {
+        this.statusCallback = callback;
+    }
 
     async checkOutdatedPackages(document: vscode.TextDocument): Promise<OutdatedPackage[]> {
         const text = document.getText();
@@ -28,14 +33,21 @@ export class PackageChecker {
 
         try {
             // Parse the YAML content
+            this.statusCallback?.('Parsing pubspec.yaml...', 0);
             const pubspec = yaml.load(text) as any;
-            
+
             if (!pubspec || !pubspec.dependencies) {
+                this.statusCallback?.('No dependencies found', 100);
                 return outdatedPackages;
             }
 
             const dependencies = pubspec.dependencies;
             const lines = text.split('\n');
+            const totalPackages = Object.keys(dependencies).length;
+
+            this.statusCallback?.(`Checking ${totalPackages} packages...`, 10);
+
+            let processedCount = 0;
 
             // Check each dependency
             for (const [packageName, versionSpec] of Object.entries(dependencies)) {
@@ -56,8 +68,10 @@ export class PackageChecker {
                 }
 
                 // Get the latest version from pub.dev
+                this.statusCallback?.(`Checking ${packageName}...`, Math.round((processedCount / totalPackages) * 80) + 10);
                 const latestVersion = await this.getLatestVersion(packageName);
                 if (!latestVersion) {
+                    processedCount++;
                     continue;
                 }
 
@@ -85,9 +99,14 @@ export class PackageChecker {
                         updateType
                     });
                 }
+
+                processedCount++;
             }
+
+            this.statusCallback?.(`Completed! Found ${outdatedPackages.length} outdated packages`, 100);
         } catch (error) {
             console.error('Error parsing pubspec.yaml:', error);
+            this.statusCallback?.('Error checking packages', 100);
             throw new Error('Failed to parse pubspec.yaml file');
         }
 
