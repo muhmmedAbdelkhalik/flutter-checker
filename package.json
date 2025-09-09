@@ -38,6 +38,11 @@
         "command": "flutter-checker.openPubDev",
         "title": "Open Package on pub.dev",
         "category": "Flutter Checker"
+      },
+      {
+        "command": "flutter-checker.clearHighlights",
+        "title": "Clear Package Highlights",
+        "category": "Flutter Checker"
       }
     ],
     "menus": {

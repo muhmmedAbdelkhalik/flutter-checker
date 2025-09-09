@@ -126,23 +126,52 @@ export class PackageChecker {
     }
 
     private async getLatestVersion(packageName: string): Promise<string | null> {
+        // Skip Flutter SDK packages
+        if (packageName === 'flutter' || packageName.startsWith('flutter/')) {
+            return null;
+        }
+
+        // Validate package name
+        if (!packageName || typeof packageName !== 'string' || packageName.trim().length === 0) {
+            console.warn(`Invalid package name: ${packageName}`);
+            return null;
+        }
+
+        const cleanPackageName = packageName.trim();
+
         // Check cache first
-        const cached = this.cache.get(packageName);
+        const cached = this.cache.get(cleanPackageName);
         if (cached && Date.now() - cached.timestamp < this.CACHE_DURATION) {
             return cached.version;
         }
 
         try {
             const response = await axios.get(
-                `https://pub.dev/api/packages/${packageName}`,
-                { timeout: 10000 }
+                `https://pub.dev/api/packages/${encodeURIComponent(cleanPackageName)}`,
+                { 
+                    timeout: 15000, // Increased timeout for production
+                    headers: {
+                        'User-Agent': 'Flutter-Checker-VSCode-Extension/1.1.2'
+                    },
+                    validateStatus: (status) => status < 500 // Don't throw for 4xx errors
+                }
             );
+
+            if (response.status !== 200) {
+                console.warn(`Package ${cleanPackageName} not found on pub.dev (status: ${response.status})`);
+                return null;
+            }
 
             if (response.data && response.data.latest) {
                 const latestVersion = response.data.latest.version;
                 
+                if (!latestVersion) {
+                    console.warn(`No version information found for package ${cleanPackageName}`);
+                    return null;
+                }
+                
                 // Cache the result
-                this.cache.set(packageName, {
+                this.cache.set(cleanPackageName, {
                     version: latestVersion,
                     timestamp: Date.now()
                 });
@@ -150,7 +179,17 @@ export class PackageChecker {
                 return latestVersion;
             }
         } catch (error) {
-            console.error(`Failed to fetch latest version for ${packageName}:`, error);
+            if (axios.isAxiosError(error)) {
+                if (error.code === 'ENOTFOUND' || error.code === 'ECONNREFUSED') {
+                    console.error(`Network error fetching ${cleanPackageName}: No internet connection`);
+                } else if (error.response?.status === 404) {
+                    console.warn(`Package ${cleanPackageName} not found on pub.dev`);
+                } else {
+                    console.error(`HTTP error fetching ${cleanPackageName}:`, error.response?.status, error.message);
+                }
+            } else {
+                console.error(`Failed to fetch latest version for ${cleanPackageName}:`, error);
+            }
         }
 
         return null;
@@ -158,16 +197,36 @@ export class PackageChecker {
 
     private isOutdated(currentVersion: string, latestVersion: string): boolean {
         try {
+            if (!currentVersion || !latestVersion) {
+                return false;
+            }
+            
+            // Validate versions before comparison
+            if (!semver.valid(currentVersion) || !semver.valid(latestVersion)) {
+                console.warn(`Invalid version format: current=${currentVersion}, latest=${latestVersion}`);
+                return false;
+            }
+            
             // Use semver to compare versions
             return semver.lt(currentVersion, latestVersion);
         } catch (error) {
-            console.error('Error comparing versions:', error);
+            console.error(`Error comparing versions ${currentVersion} vs ${latestVersion}:`, error);
             return false;
         }
     }
 
     private getUpdateType(currentVersion: string, latestVersion: string): UpdateType {
         try {
+            if (!currentVersion || !latestVersion) {
+                return UpdateType.MAJOR;
+            }
+            
+            // Validate versions before comparison
+            if (!semver.valid(currentVersion) || !semver.valid(latestVersion)) {
+                console.warn(`Invalid version format for update type: current=${currentVersion}, latest=${latestVersion}`);
+                return UpdateType.MAJOR;
+            }
+            
             // Use semver to determine the type of update
             if (semver.major(currentVersion) !== semver.major(latestVersion)) {
                 return UpdateType.MAJOR;
@@ -177,7 +236,7 @@ export class PackageChecker {
                 return UpdateType.PATCH;
             }
         } catch (error) {
-            console.error('Error determining update type:', error);
+            console.error(`Error determining update type for ${currentVersion} -> ${latestVersion}:`, error);
             // Default to major if we can't determine the type
             return UpdateType.MAJOR;
         }

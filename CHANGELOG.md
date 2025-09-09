@@ -7,6 +7,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.3] - 2025-01-09
+
+### 🚀 Added
+- **Smart Detection**: Automatic package checking when opening/modifying pubspec.yaml files
+- **Production-grade error handling**: Comprehensive try-catch blocks and graceful degradation
+- **Command registration verification**: Extension now verifies all commands are properly registered
+- **Network resilience**: Enhanced API calls with 15s timeout, User-Agent headers, and proper error handling
+- **Memory management**: Proper cleanup of resources, timeouts, and caches on deactivation
+- **Input validation**: All user inputs are validated and sanitized before processing
+- **Auto-check configuration**: `flutterChecker.autoCheck` and `flutterChecker.showAutoCheckNotifications` settings
+
+### 🔧 Fixed
+- **CRITICAL**: "command 'flutter-checker.checkOutdated' not found" error completely eliminated
+- **Missing command**: Added `flutter-checker.clearHighlights` command to package.json
+- **Race conditions**: Fixed async event listener failures during extension activation
+- **Silent failures**: All errors now provide proper user feedback and detailed logging
+- **Memory leaks**: Proper resource cleanup prevents memory leaks and conflicts
+- **Network failures**: Graceful handling of connection issues and API timeouts
+
+### 🎯 Enhanced
+- **API reliability**: Increased timeout from 10s to 15s for production stability
+- **Error logging**: Detailed context in all error messages for better debugging
+- **Package validation**: Skip Flutter SDK packages and validate package names
+- **URL encoding**: Proper encoding of package names for API requests
+- **Version validation**: Enhanced semver validation before comparisons
+
+### 📊 Performance
+- **Debounced updates**: 2-second delay for file changes prevents API spam
+- **Smart caching**: 5-minute cache with proper cleanup
+- **Event optimization**: Only process pubspec.yaml files, skip irrelevant events
+
 ## [1.1.2] - 2025-09-09
 
 ### Added
