@@ -1,22 +1,35 @@
 import * as vscode from 'vscode';
 import { PackageChecker } from './packageChecker';
 import { DecorationProvider } from './decorationProvider';
+import { StatusBarProvider, StatusBarState } from './statusBarProvider';
 
 // Extension module loaded
 
 let packageChecker: PackageChecker;
 let decorationProvider: DecorationProvider;
+let statusBarProvider: StatusBarProvider;
 
-export function activate(context: vscode.ExtensionContext) {
+export async function activate(context: vscode.ExtensionContext) {
     try {
         console.log('Flutter Checker extension is now active!');
         console.log('Extension mode:', context.extensionMode);
 
-        // Initialize the package checker and decoration provider
+        // Initialize the package checker, decoration provider, and status bar provider
         packageChecker = new PackageChecker();
         decorationProvider = new DecorationProvider();
-        
-        console.log('Package checker and decoration provider initialized');
+        statusBarProvider = new StatusBarProvider();
+
+        // Connect status bar provider to package checker
+        packageChecker.setStatusCallback((message: string, progress?: number) => {
+            if (progress !== undefined) {
+                statusBarProvider.setChecking(message);
+            }
+        });
+
+        console.log('Package checker, decoration provider, and status bar provider initialized');
+
+        // Initialize status bar with workspace state
+        await initializeStatusBarState();
 
         // Register commands
         const checkOutdatedCommand = vscode.commands.registerCommand(
@@ -32,16 +45,6 @@ export function activate(context: vscode.ExtensionContext) {
             'flutter-checker.clearHighlights',
             () => {
                 decorationProvider.clearDecorations();
-            }
-        );
-
-        const openPubDevCommand = vscode.commands.registerCommand(
-            'flutter-checker.openPubDev',
-            (packageName: string) => {
-                if (packageName) {
-                    const url = `https://pub.dev/packages/${packageName}`;
-                    vscode.env.openExternal(vscode.Uri.parse(url));
-                }
             }
         );
 
@@ -127,16 +130,22 @@ export function activate(context: vscode.ExtensionContext) {
             }
         });
 
+        // Listen for workspace folder changes
+        const onDidChangeWorkspaceFolders = vscode.workspace.onDidChangeWorkspaceFolders(async () => {
+            await initializeStatusBarState();
+        });
+
         // Add to subscriptions
         context.subscriptions.push(
             checkOutdatedCommand,
             clearHighlightsCommand,
-            openPubDevCommand,
             decorationProvider,
+            statusBarProvider,
             onDidOpenTextDocument,
             onDidChangeTextDocument,
             onDidSaveTextDocument,
-            onDidChangeActiveTextEditor
+            onDidChangeActiveTextEditor,
+            onDidChangeWorkspaceFolders
         );
 
         console.log('All commands and event listeners registered successfully!');
@@ -190,37 +199,135 @@ export function activate(context: vscode.ExtensionContext) {
     }
 }
 
+async function findPubspecFiles(): Promise<vscode.Uri[]> {
+    const workspaceFolders = vscode.workspace.workspaceFolders;
+    if (!workspaceFolders) {
+        return [];
+    }
+
+    const pubspecFiles: vscode.Uri[] = [];
+
+    for (const folder of workspaceFolders) {
+        try {
+            const pattern = new vscode.RelativePattern(folder, '**/pubspec.yaml');
+            const files = await vscode.workspace.findFiles(pattern, '**/node_modules/**', 10);
+            pubspecFiles.push(...files);
+        } catch (error) {
+            console.warn(`Error searching for pubspec.yaml in ${folder.uri.fsPath}:`, error);
+        }
+    }
+
+    return pubspecFiles;
+}
+
+async function initializeStatusBarState() {
+    try {
+        // Check if we have a workspace
+        if (!vscode.workspace.workspaceFolders) {
+            statusBarProvider.setError('No workspace opened');
+            return;
+        }
+
+        // Check for pubspec.yaml files
+        const pubspecFiles = await findPubspecFiles();
+
+        if (pubspecFiles.length === 0) {
+            // No pubspec.yaml files found
+            statusBarProvider.setNoProjectsFound();
+        } else {
+            // Pubspec.yaml files found, ready to check
+            statusBarProvider.setIdle();
+        }
+    } catch (error) {
+        console.error('Error initializing status bar state:', error);
+        statusBarProvider.setError('Initialization failed');
+    }
+}
+
 async function checkOutdatedPackages() {
     const activeEditor = vscode.window.activeTextEditor;
-    if (!activeEditor || !activeEditor.document.fileName.endsWith('pubspec.yaml')) {
-        vscode.window.showWarningMessage('Please open a pubspec.yaml file first.');
+
+    // If active editor is already a pubspec.yaml file, use it
+    if (activeEditor && activeEditor.document.fileName.endsWith('pubspec.yaml')) {
+        await checkOutdatedPackagesForDocument(activeEditor.document, activeEditor, true);
         return;
     }
 
-    await checkOutdatedPackagesForDocument(activeEditor.document, activeEditor, true);
+    // Try to find pubspec.yaml files in workspace
+    const pubspecFiles = await findPubspecFiles();
+
+    if (pubspecFiles.length === 0) {
+        vscode.window.showWarningMessage(
+            'No pubspec.yaml files found in workspace. Please open a Flutter/Dart project.'
+        );
+        statusBarProvider.setNoProjectsFound();
+        return;
+    }
+
+    if (pubspecFiles.length === 1) {
+        // Open the single pubspec.yaml file
+        try {
+            const document = await vscode.workspace.openTextDocument(pubspecFiles[0]);
+            const editor = await vscode.window.showTextDocument(document);
+            await checkOutdatedPackagesForDocument(document, editor, true);
+        } catch (error) {
+            console.error('Error opening pubspec.yaml file:', error);
+            vscode.window.showErrorMessage('Failed to open pubspec.yaml file.');
+            statusBarProvider.setError('Failed to open pubspec.yaml');
+        }
+    } else {
+        // Multiple pubspec.yaml files found, let user choose
+        const items = pubspecFiles.map(file => ({
+            label: vscode.workspace.asRelativePath(file),
+            description: file.fsPath,
+            uri: file
+        }));
+
+        const selected = await vscode.window.showQuickPick(items, {
+            placeHolder: 'Select a pubspec.yaml file to check'
+        });
+
+        if (selected) {
+            try {
+                const document = await vscode.workspace.openTextDocument(selected.uri);
+                const editor = await vscode.window.showTextDocument(document);
+                await checkOutdatedPackagesForDocument(document, editor, true);
+            } catch (error) {
+                console.error('Error opening selected pubspec.yaml file:', error);
+                vscode.window.showErrorMessage('Failed to open selected pubspec.yaml file.');
+                statusBarProvider.setError('Failed to open pubspec.yaml');
+            }
+        }
+    }
 }
 
 async function checkOutdatedPackagesForDocument(document: vscode.TextDocument, editor: vscode.TextEditor, showProgress: boolean = true) {
     // Check if automatic detection is enabled
     const config = vscode.workspace.getConfiguration('flutterChecker');
     const isEnabled = config.get<boolean>('enabled', true);
-    
+
     if (!isEnabled) {
         console.log('Flutter Checker is disabled, skipping package check');
         return;
     }
 
     try {
+        // Set status bar to checking state
+        statusBarProvider.setChecking('Checking packages...');
+
         const checkPackages = async (progress?: vscode.Progress<{increment?: number, message?: string}>) => {
             if (progress) progress.report({ increment: 0, message: "Parsing pubspec.yaml..." });
-            
+
             const outdatedPackages = await packageChecker.checkOutdatedPackages(document);
-            
+
             if (progress) progress.report({ increment: 50, message: "Applying highlights..." });
-            
+
             decorationProvider.updateDecorations(editor, outdatedPackages);
-            
+
             if (progress) progress.report({ increment: 100, message: "Complete!" });
+
+            // Update status bar with final count
+            statusBarProvider.setComplete(outdatedPackages.length, `Found ${outdatedPackages.length} outdated packages`);
             
             // Show notifications based on settings
             if (showProgress) {
@@ -257,6 +364,9 @@ async function checkOutdatedPackagesForDocument(document: vscode.TextDocument, e
         }
     } catch (error) {
         console.error('Error checking outdated packages:', error);
+        // Set status bar to error state
+        statusBarProvider.setError('Failed to check for outdated packages');
+
         if (showProgress) {
             vscode.window.showErrorMessage('Failed to check for outdated packages. Please try again.');
         }
@@ -278,6 +388,12 @@ export function deactivate() {
         if (decorationProvider) {
             decorationProvider.dispose();
             decorationProvider = undefined as any;
+        }
+
+        // Dispose of status bar provider
+        if (statusBarProvider) {
+            statusBarProvider.dispose();
+            statusBarProvider = undefined as any;
         }
         
         // Clear cache
