@@ -48,16 +48,100 @@ export function activate(context: vscode.ExtensionContext) {
             }
         );
 
+        // Register event listeners for automatic detection
+        const onDidOpenTextDocument = vscode.workspace.onDidOpenTextDocument(async (document) => {
+            if (document.fileName.endsWith('pubspec.yaml')) {
+                const config = vscode.workspace.getConfiguration('flutterChecker');
+                const autoCheck = config.get<boolean>('autoCheck', true);
+                
+                if (autoCheck) {
+                    console.log('pubspec.yaml file opened, automatically checking for outdated packages');
+                    const editor = vscode.window.visibleTextEditors.find(e => e.document === document);
+                    if (editor) {
+                        await checkOutdatedPackagesForDocument(document, editor, false); // silent mode
+                    }
+                }
+            }
+        });
+
+        const onDidChangeTextDocument = vscode.workspace.onDidChangeTextDocument(async (event) => {
+            if (event.document.fileName.endsWith('pubspec.yaml')) {
+                const config = vscode.workspace.getConfiguration('flutterChecker');
+                const autoCheck = config.get<boolean>('autoCheck', true);
+                
+                if (autoCheck) {
+                    console.log('pubspec.yaml file modified, automatically checking for outdated packages');
+                    const editor = vscode.window.visibleTextEditors.find(e => e.document === event.document);
+                    if (editor) {
+                        // Debounce the change detection to avoid too many API calls
+                        clearTimeout((global as any).pubspecChangeTimeout);
+                        (global as any).pubspecChangeTimeout = setTimeout(async () => {
+                            await checkOutdatedPackagesForDocument(event.document, editor, false); // silent mode
+                        }, 2000); // 2 second delay
+                    }
+                }
+            }
+        });
+
+        const onDidSaveTextDocument = vscode.workspace.onDidSaveTextDocument(async (document) => {
+            if (document.fileName.endsWith('pubspec.yaml')) {
+                const config = vscode.workspace.getConfiguration('flutterChecker');
+                const autoCheck = config.get<boolean>('autoCheck', true);
+                
+                if (autoCheck) {
+                    console.log('pubspec.yaml file saved, automatically checking for outdated packages');
+                    const editor = vscode.window.visibleTextEditors.find(e => e.document === document);
+                    if (editor) {
+                        await checkOutdatedPackagesForDocument(document, editor, false); // silent mode
+                    }
+                }
+            }
+        });
+
+        const onDidChangeActiveTextEditor = vscode.window.onDidChangeActiveTextEditor(async (editor) => {
+            if (editor && editor.document.fileName.endsWith('pubspec.yaml')) {
+                const config = vscode.workspace.getConfiguration('flutterChecker');
+                const autoCheck = config.get<boolean>('autoCheck', true);
+                
+                if (autoCheck) {
+                    console.log('Switched to pubspec.yaml file, automatically checking for outdated packages');
+                    await checkOutdatedPackagesForDocument(editor.document, editor, false); // silent mode
+                }
+            }
+        });
+
         // Add to subscriptions
         context.subscriptions.push(
             checkOutdatedCommand,
             clearHighlightsCommand,
             openPubDevCommand,
-            decorationProvider
+            decorationProvider,
+            onDidOpenTextDocument,
+            onDidChangeTextDocument,
+            onDidSaveTextDocument,
+            onDidChangeActiveTextEditor
         );
 
-        console.log('All commands registered successfully!');
+        console.log('All commands and event listeners registered successfully!');
         console.log('Context subscriptions count:', context.subscriptions.length);
+        
+        // Check already open documents for pubspec.yaml files
+        const checkAlreadyOpenDocuments = async () => {
+            const config = vscode.workspace.getConfiguration('flutterChecker');
+            const autoCheck = config.get<boolean>('autoCheck', true);
+            
+            if (autoCheck) {
+                for (const editor of vscode.window.visibleTextEditors) {
+                    if (editor.document.fileName.endsWith('pubspec.yaml')) {
+                        console.log('Found already open pubspec.yaml file, automatically checking for outdated packages');
+                        await checkOutdatedPackagesForDocument(editor.document, editor, false); // silent mode
+                    }
+                }
+            }
+        };
+        
+        // Run the check after a short delay to ensure everything is initialized
+        setTimeout(checkAlreadyOpenDocuments, 1000);
         
         // Commands registered successfully - only show in development mode
         if (context.extensionMode === vscode.ExtensionMode.Development) {
@@ -87,35 +171,69 @@ async function checkOutdatedPackages() {
         return;
     }
 
-    const document = activeEditor.document;
+    await checkOutdatedPackagesForDocument(activeEditor.document, activeEditor, true);
+}
+
+async function checkOutdatedPackagesForDocument(document: vscode.TextDocument, editor: vscode.TextEditor, showProgress: boolean = true) {
+    // Check if automatic detection is enabled
+    const config = vscode.workspace.getConfiguration('flutterChecker');
+    const isEnabled = config.get<boolean>('enabled', true);
     
+    if (!isEnabled) {
+        console.log('Flutter Checker is disabled, skipping package check');
+        return;
+    }
+
     try {
-        vscode.window.withProgress({
-            location: vscode.ProgressLocation.Notification,
-            title: "Checking for outdated packages...",
-            cancellable: false
-        }, async (progress) => {
-            progress.report({ increment: 0, message: "Parsing pubspec.yaml..." });
+        const checkPackages = async (progress?: vscode.Progress<{increment?: number, message?: string}>) => {
+            if (progress) progress.report({ increment: 0, message: "Parsing pubspec.yaml..." });
             
             const outdatedPackages = await packageChecker.checkOutdatedPackages(document);
             
-            progress.report({ increment: 50, message: "Applying highlights..." });
+            if (progress) progress.report({ increment: 50, message: "Applying highlights..." });
             
-            decorationProvider.updateDecorations(activeEditor, outdatedPackages);
+            decorationProvider.updateDecorations(editor, outdatedPackages);
             
-            progress.report({ increment: 100, message: "Complete!" });
+            if (progress) progress.report({ increment: 100, message: "Complete!" });
             
-            if (outdatedPackages.length > 0) {
-                vscode.window.showInformationMessage(
-                    `Found ${outdatedPackages.length} outdated package(s). Check the highlights in your pubspec.yaml file.`
-                );
+            // Show notifications based on settings
+            if (showProgress) {
+                // Manual check - always show notifications
+                if (outdatedPackages.length > 0) {
+                    vscode.window.showInformationMessage(
+                        `Found ${outdatedPackages.length} outdated package(s). Check the highlights in your pubspec.yaml file.`
+                    );
+                } else {
+                    vscode.window.showInformationMessage('All packages are up to date!');
+                }
             } else {
-                vscode.window.showInformationMessage('All packages are up to date!');
+                // Automatic check - only show notifications if enabled
+                const currentConfig = vscode.workspace.getConfiguration('flutterChecker');
+                const showAutoNotifications = currentConfig.get<boolean>('showAutoCheckNotifications', false);
+                if (showAutoNotifications && outdatedPackages.length > 0) {
+                    vscode.window.showInformationMessage(
+                        `Auto-check found ${outdatedPackages.length} outdated package(s). Check the highlights in your pubspec.yaml file.`
+                    );
+                }
+                // Always log to console for debugging
+                console.log(`Automatic check completed: ${outdatedPackages.length} outdated packages found`);
             }
-        });
+        };
+
+        if (showProgress) {
+            await vscode.window.withProgress({
+                location: vscode.ProgressLocation.Notification,
+                title: "Checking for outdated packages...",
+                cancellable: false
+            }, checkPackages);
+        } else {
+            await checkPackages();
+        }
     } catch (error) {
         console.error('Error checking outdated packages:', error);
-        vscode.window.showErrorMessage('Failed to check for outdated packages. Please try again.');
+        if (showProgress) {
+            vscode.window.showErrorMessage('Failed to check for outdated packages. Please try again.');
+        }
     }
 }
 

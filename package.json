@@ -57,6 +57,16 @@
           "default": true,
           "description": "Enable/disable the outdated package highlighter"
         },
+        "flutterChecker.autoCheck": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically check for outdated packages when opening or modifying pubspec.yaml files"
+        },
+        "flutterChecker.showAutoCheckNotifications": {
+          "type": "boolean",
+          "default": false,
+          "description": "Show notification messages for automatic package checks (when autoCheck is enabled)"
+        },
         "flutterChecker.highlightColor": {
           "type": "string",
           "default": "#ff6b6b",
