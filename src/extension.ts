@@ -2,6 +2,8 @@ import * as vscode from 'vscode';
 import { PackageChecker } from './packageChecker';
 import { DecorationProvider } from './decorationProvider';
 
+// Extension module loaded
+
 let packageChecker: PackageChecker;
 let decorationProvider: DecorationProvider;
 
@@ -57,7 +59,7 @@ export function activate(context: vscode.ExtensionContext) {
         console.log('All commands registered successfully!');
         console.log('Context subscriptions count:', context.subscriptions.length);
         
-        // Show a notification that the extension is ready (only in development)
+        // Commands registered successfully - only show in development mode
         if (context.extensionMode === vscode.ExtensionMode.Development) {
             vscode.window.showInformationMessage('Flutter Checker extension is ready!');
         }

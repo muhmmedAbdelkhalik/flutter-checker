@@ -10,8 +10,11 @@
     "url": "https://github.com/muhmmedAbdelkhalik/flutter-checker"
   },
   "engines": {
-    "vscode": "^1.74.0"
+    "vscode": "^1.75.0"
   },
+  "extensionKind": [
+    "workspace"
+  ],
   "categories": [
     "Other"
   ],
@@ -20,8 +23,7 @@
     "theme": "dark"
   },
   "activationEvents": [
-    "onLanguage:yaml",
-    "onCommand:flutter-checker.checkOutdated"
+    "onLanguage:yaml"
   ],
   "main": "./out/extension.js",
   "contributes": {

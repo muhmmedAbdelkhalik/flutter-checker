@@ -18,6 +18,7 @@ node_modules/**/coverage
 DEPLOYMENT.md
 INSTALLATION.md
 sample-pubspec.yaml
+test-extension.js
 
 # Flutter/Dart specific files that shouldn't be in the extension
 .dart_tool/**
