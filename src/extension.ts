@@ -7,6 +7,7 @@ let decorationProvider: DecorationProvider;
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('Flutter Checker extension is now active!');
+    console.log('Registering commands...');
 
     // Initialize the package checker and decoration provider
     packageChecker = new PackageChecker();
@@ -16,13 +17,14 @@ export function activate(context: vscode.ExtensionContext) {
     const checkOutdatedCommand = vscode.commands.registerCommand(
         'flutter-checker.checkOutdated',
         async () => {
+            console.log('Check outdated command triggered');
             await checkOutdatedPackages();
         }
     );
+    console.log('Registered checkOutdated command');
 
     const clearHighlightsCommand = vscode.commands.registerCommand(
-        'flutter-checker.clearHighlights'
-        ,
+        'flutter-checker.clearHighlights',
         () => {
             decorationProvider.clearDecorations();
         }
@@ -38,45 +40,13 @@ export function activate(context: vscode.ExtensionContext) {
         }
     );
 
-
-    // Register file watcher for pubspec.yaml files
-    const fileWatcher = vscode.workspace.createFileSystemWatcher('**/pubspec.yaml');
-    
-    fileWatcher.onDidChange(async (uri) => {
-        if (shouldAutoCheck()) {
-            await checkOutdatedPackages();
-        }
-    });
-
-    fileWatcher.onDidCreate(async (uri) => {
-        if (shouldAutoCheck()) {
-            await checkOutdatedPackages();
-        }
-    });
-
-    // Check for outdated packages when a pubspec.yaml file is opened
-    vscode.workspace.onDidOpenTextDocument(async (document) => {
-        if (document.fileName.endsWith('pubspec.yaml') && shouldAutoCheck()) {
-            await checkOutdatedPackages();
-        }
-    });
-
     // Add to subscriptions
     context.subscriptions.push(
         checkOutdatedCommand,
         clearHighlightsCommand,
         openPubDevCommand,
-        fileWatcher,
         decorationProvider
     );
-
-    // Initial check if a pubspec.yaml file is already open
-    const activeEditor = vscode.window.activeTextEditor;
-    if (activeEditor && activeEditor.document.fileName.endsWith('pubspec.yaml')) {
-        if (shouldAutoCheck()) {
-            checkOutdatedPackages();
-        }
-    }
 }
 
 async function checkOutdatedPackages() {
@@ -118,10 +88,6 @@ async function checkOutdatedPackages() {
     }
 }
 
-function shouldAutoCheck(): boolean {
-    const config = vscode.workspace.getConfiguration('flutterChecker');
-    return config.get('enabled', true) && config.get('autoCheck', true);
-}
 
 export function deactivate() {
     if (decorationProvider) {

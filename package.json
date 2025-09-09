@@ -23,8 +23,7 @@
     "onCommand:flutter-checker.checkOutdated",
     "onCommand:flutter-checker.clearHighlights",
     "onCommand:flutter-checker.openPubDev",
-    "onLanguage:yaml",
-    "workspaceContains:**/pubspec.yaml"
+    "onLanguage:yaml"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -32,12 +31,8 @@
       {
         "command": "flutter-checker.checkOutdated",
         "title": "Check for Outdated Packages",
-        "category": "Flutter Checker"
-      },
-      {
-        "command": "flutter-checker.clearHighlights",
-        "title": "Clear Package Highlights",
-        "category": "Flutter Checker"
+        "category": "Flutter Checker",
+        "icon": "$(sparkle)"
       },
       {
         "command": "flutter-checker.openPubDev",
@@ -45,6 +40,15 @@
         "category": "Flutter Checker"
       }
     ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "flutter-checker.checkOutdated",
+          "group": "navigation",
+          "when": "resourceExtname == .yaml && editorLangId == yaml && resourceFilename == pubspec.yaml"
+        }
+      ]
+    },
     "configuration": {
       "title": "Flutter Checker",
       "properties": {
@@ -52,11 +56,6 @@
           "type": "boolean",
           "default": true,
           "description": "Enable/disable the outdated package highlighter"
-        },
-        "flutterChecker.autoCheck": {
-          "type": "boolean",
-          "default": true,
-          "description": "Automatically check for outdated packages when opening pubspec.yaml"
         },
         "flutterChecker.highlightColor": {
           "type": "string",
@@ -83,10 +82,20 @@
           "default": "#ff6b6b",
           "description": "Text color for the version comparison (→ latest)"
         },
-        "flutterChecker.checkInterval": {
-          "type": "number",
-          "default": 300,
-          "description": "Interval in seconds between automatic checks"
+        "flutterChecker.patchUpdateColor": {
+          "type": "string",
+          "default": "#4ecdc4",
+          "description": "Color for patch updates (bug fixes). Uses theme-aware colors: light theme uses default, dark theme uses darker variant. Leave empty to use automatic theme colors."
+        },
+        "flutterChecker.minorUpdateColor": {
+          "type": "string",
+          "default": "#ffa726",
+          "description": "Color for minor updates (new features). Uses theme-aware colors: light theme uses default, dark theme uses darker variant. Leave empty to use automatic theme colors."
+        },
+        "flutterChecker.majorUpdateColor": {
+          "type": "string",
+          "default": "#ff6b6b",
+          "description": "Color for major updates (breaking changes). Uses theme-aware colors: light theme uses default, dark theme uses darker variant. Leave empty to use automatic theme colors."
         }
       }
     },
