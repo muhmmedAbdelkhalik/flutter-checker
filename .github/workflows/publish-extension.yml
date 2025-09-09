@@ -55,32 +55,6 @@ jobs:
           echo "new=$NEW_VERSION" >> $GITHUB_OUTPUT
           echo "New version: $NEW_VERSION"
 
-      - name: Update CHANGELOG
-        run: |
-          NEW_VERSION=$(node -p "require('./package.json').version")
-          DATE=$(date +%Y-%m-%d)
-          
-          # Create new changelog entry
-          cat > temp_changelog.md << EOF
-          # Changelog
-
-          All notable changes to this project will be documented in this file.
-
-          The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-          and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-
-          ## [Unreleased]
-
-          ## [$NEW_VERSION] - $DATE
-
-          ### Added
-          - Automated version bump to $NEW_VERSION
-
-          EOF
-          
-          # Append existing changelog content (skip first 8 lines which are the header)
-          tail -n +9 CHANGELOG.md >> temp_changelog.md
-          mv temp_changelog.md CHANGELOG.md
 
       - name: Build extension
         run: npm run build
@@ -89,7 +63,7 @@ jobs:
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add package.json CHANGELOG.md
+          git add package.json
           git commit -m "Bump version to $(node -p "require('./package.json').version")"
           git tag "v$(node -p "require('./package.json').version")"
           git push origin main
