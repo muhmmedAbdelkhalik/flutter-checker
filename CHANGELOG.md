@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.4] - 2025-01-10
+
+### 🔧 Fixed
+- **Command registration reliability**: Enhanced activation events to ensure commands are always available
+- **Extension activation**: Added `workspaceContains:**/pubspec.yaml` and `onCommand:` activation events
+- **Production stability**: Removed excessive debug logging while maintaining error reporting
+
 ## [1.1.3] - 2025-01-09
 
 ### 🚀 Added

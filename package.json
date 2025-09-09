@@ -23,7 +23,11 @@
     "theme": "dark"
   },
   "activationEvents": [
-    "onLanguage:yaml"
+    "onLanguage:yaml",
+    "workspaceContains:**/pubspec.yaml",
+    "onCommand:flutter-checker.checkOutdated",
+    "onCommand:flutter-checker.clearHighlights",
+    "onCommand:flutter-checker.openPubDev"
   ],
   "main": "./out/extension.js",
   "contributes": {

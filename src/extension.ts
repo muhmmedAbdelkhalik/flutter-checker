@@ -11,9 +11,6 @@ export function activate(context: vscode.ExtensionContext) {
     try {
         console.log('Flutter Checker extension is now active!');
         console.log('Extension mode:', context.extensionMode);
-        console.log('Extension path:', context.extensionPath);
-        console.log('Extension URI:', context.extensionUri.toString());
-        console.log('Registering commands...');
 
         // Initialize the package checker and decoration provider
         packageChecker = new PackageChecker();
@@ -143,7 +140,6 @@ export function activate(context: vscode.ExtensionContext) {
         );
 
         console.log('All commands and event listeners registered successfully!');
-        console.log('Context subscriptions count:', context.subscriptions.length);
         
         // Check already open documents for pubspec.yaml files
         const checkAlreadyOpenDocuments = async () => {
@@ -176,15 +172,12 @@ export function activate(context: vscode.ExtensionContext) {
             vscode.window.showInformationMessage('Flutter Checker extension is ready!');
         }
         
-        // Test if commands are actually registered
+        // Verify commands are registered
         vscode.commands.getCommands(true).then(commands => {
             const ourCommands = commands.filter(cmd => cmd.startsWith('flutter-checker.'));
-            console.log('Our registered commands:', ourCommands);
             if (ourCommands.length === 0) {
                 console.error('CRITICAL ERROR: No flutter-checker commands found in registered commands!');
                 vscode.window.showErrorMessage('Flutter Checker: Commands failed to register. Please reload VS Code.');
-            } else {
-                console.log(`✅ Successfully registered ${ourCommands.length} commands`);
             }
         }, (error: any) => {
             console.error('Error verifying command registration:', error);
