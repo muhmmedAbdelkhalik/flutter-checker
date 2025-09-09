@@ -7,14 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [1.1.4] - 2025-01-10
+## [1.1.6] - 2025-09-10
+
+### 🚀 Added
+- **Status Tracking**: Real-time status bar with package update counts and checking progress
+- **Smart Detection**: Automatically find and open pubspec.yaml files from anywhere in the workspace
+- **Status Bar Provider**: New status bar component with multiple states (idle, checking, complete, error)
+- **Workspace Scanning**: First-time initialization scans workspace for Flutter projects
+- **Configuration Options**: Added `flutterChecker.showStatusBar` and `flutterChecker.statusBarPriority` settings
+
+### 🔧 Fixed
+- **Broken Command**: Removed non-functional "Open Package on pub.dev" command
+- **Hover Messages**: Cleaned up hover tooltips by removing broken pub.dev links
+- **User Experience**: No more "Please open a pubspec.yaml file first" error when clicking status bar
+
+## [1.1.5] - 2025-09-09
 
 ### 🔧 Fixed
 - **Command registration reliability**: Enhanced activation events to ensure commands are always available
 - **Extension activation**: Added `workspaceContains:**/pubspec.yaml` and `onCommand:` activation events
 - **Production stability**: Removed excessive debug logging while maintaining error reporting
 
-## [1.1.3] - 2025-01-09
+## [1.1.3] - 2025-09-09
 
 ### 🚀 Added
 - **Smart Detection**: Automatic package checking when opening/modifying pubspec.yaml files
@@ -57,7 +71,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Automated version bump to 1.1.1
 
 
-## [1.1.0] - 2025-01-27
+## [1.1.0] - 2025-09-08
 
 ### Added
 - Color-coded update type highlighting (Patch, Minor, Major updates)
