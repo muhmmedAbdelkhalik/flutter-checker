@@ -9,7 +9,7 @@ A VS Code extension that helps you identify outdated packages in your Flutter/Da
 
 ## Preview
 
-![Flutter Checker in Action](https://raw.githubusercontent.com/muhmmedAbdelkhalik/flutter-checker/refs/heads/main/screenshot.png)
+![Flutter Checker in Action](https://raw.githubusercontent.com/muhmmedAbdelkhalik/flutter-checker/refs/heads/main/assets/screenshot.png)
 
 *The extension highlights outdated packages with version comparisons and interactive hover tooltips*
 
