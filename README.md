@@ -5,32 +5,39 @@
 [![Rating](https://img.shields.io/visual-studio-marketplace/r/abdelkhalik.flutter-checker?label=Rating&color=yellow)](https://marketplace.visualstudio.com/items?itemName=abdelkhalik.flutter-checker)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-A VS Code extension that helps you identify outdated packages in your Flutter/Dart `pubspec.yaml` files by highlighting version lines with visual indicators.
+A VS Code extension that helps you identify outdated packages in your Flutter/Dart `pubspec.yaml` files with intelligent color-coded highlighting and detailed update information.
 
 ## Preview
 
 ![Flutter Checker in Action](https://raw.githubusercontent.com/muhmmedAbdelkhalik/flutter-checker/refs/heads/main/assets/screenshot.png)
 
-*The extension highlights outdated packages with version comparisons and interactive hover tooltips*
+*The extension highlights outdated packages with color-coded update types, version comparisons, and rich hover tooltips*
 
 ## Features
 
-- 🔍 **Automatic Detection**: Automatically checks for outdated packages when you open or modify `pubspec.yaml` files
-- 🎨 **Visual Highlighting**: Highlights outdated package versions with colored underlines and indicators
-- 📊 **Simple Hover Info**: Clean hover tooltip showing current → latest version
-- 🔗 **Quick Navigation**: Click to open package page on pub.dev
-- ⚡ **Fast Performance**: Uses caching to minimize API calls to pub.dev
-- 🎛️ **Configurable**: Customize colors, auto-check behavior, and more
+- 🔍 **Smart Detection**: Automatically checks for outdated packages when you open or modify `pubspec.yaml` files
+- 🎨 **Color-Coded Updates**: Visual highlighting with different colors for patch (🔧), minor (✨), and major (⚠️) updates
+- 📊 **Rich Hover Information**: Detailed hover tooltips showing current → latest version with update type descriptions
+- 🔗 **Quick Navigation**: Click to open package page on pub.dev directly from hover tooltips
+- ⚡ **Fast Performance**: Intelligent caching system minimizes API calls to pub.dev (5-minute cache)
+- 🎛️ **Highly Configurable**: Customize colors for each update type, theme-aware color schemes, and more
+- 📈 **Progress Indicators**: Visual progress feedback during package checking
+- 🎯 **Precise Highlighting**: Highlights only the version specification, not the entire line
 
 ## How it Works
 
 1. **Package Detection**: The extension parses your `pubspec.yaml` file to extract package dependencies
-2. **Version Checking**: It queries the pub.dev API to get the latest versions of your packages
-3. **Visual Highlighting**: Outdated packages are highlighted with:
-   - Colored background and border
-   - Version comparison in the editor
-   - Simple hover tooltip with version info
-   - Overview ruler indicators
+2. **Version Checking**: It queries the pub.dev API to get the latest versions of your packages (with intelligent caching)
+3. **Update Classification**: Uses semantic versioning to categorize updates as:
+   - 🔧 **Patch Updates**: Bug fixes and small improvements
+   - ✨ **Minor Updates**: New features (backward compatible)
+   - ⚠️ **Major Updates**: Breaking changes
+4. **Visual Highlighting**: Outdated packages are highlighted with:
+   - Color-coded underlines based on update type
+   - Version comparison showing current → latest
+   - Rich hover tooltips with update type descriptions
+   - Overview ruler indicators with appropriate colors
+   - Clickable links to pub.dev
 
 ## Usage
 
@@ -51,15 +58,23 @@ To remove all highlights:
 2. Run `Flutter Checker: Clear Package Highlights`
 
 ### Navigation Features
-Simple and clean interaction with outdated packages:
+Rich interaction with outdated packages:
 
 1. **Hover Information**: Hover over any highlighted package to see:
-   - Package name
+   - Package name with emoji indicators
    - Current → Latest version comparison
+   - Update type description (Patch/Minor/Major)
    - Clickable link to open pub.dev
 
-2. **Command Palette**: Use this command:
-   - `Flutter Checker: Open Package on pub.dev`
+2. **Progress Feedback**: When checking packages, you'll see:
+   - Progress notification with current status
+   - "Parsing pubspec.yaml..." → "Applying highlights..." → "Complete!"
+   - Summary message showing number of outdated packages found
+
+3. **Command Palette**: Available commands:
+   - `Flutter Checker: Check for Outdated Packages` - Manual check
+   - `Flutter Checker: Clear Package Highlights` - Remove all highlights
+   - `Flutter Checker: Open Package on pub.dev` - Open specific package
 
 ## Configuration
 
@@ -68,26 +83,33 @@ You can customize the extension behavior in VS Code settings:
 ```json
 {
   "flutterChecker.enabled": true,
-  "flutterChecker.autoCheck": true,
   "flutterChecker.highlightColor": "#ff6b6b",
   "flutterChecker.backgroundColor": "#ff6b6b20",
   "flutterChecker.borderColor": "#ff6b6b",
   "flutterChecker.textColor": "#ff6b6b",
   "flutterChecker.versionTextColor": "#ff6b6b",
-  "flutterChecker.checkInterval": 300
+  "flutterChecker.patchUpdateColor": "#4ecdc4",
+  "flutterChecker.minorUpdateColor": "#ffa726",
+  "flutterChecker.majorUpdateColor": "#ff6b6b"
 }
 ```
 
 ### Settings
 
+#### Core Settings
 - `enabled`: Enable/disable the extension (default: `true`)
-- `autoCheck`: Automatically check for outdated packages (default: `true`)
 - `highlightColor`: Main highlight color for overview ruler (default: `#ff6b6b`)
 - `backgroundColor`: Background color with transparency (default: `#ff6b6b20`)
 - `borderColor`: Border color for highlighting (default: `#ff6b6b`)
 - `textColor`: Color for the "(outdated)" label (default: `#ff6b6b`)
 - `versionTextColor`: Color for version comparison text (default: `#ff6b6b`)
-- `checkInterval`: Interval in seconds between automatic checks (default: `300`)
+
+#### Update Type Colors (Theme-Aware)
+- `patchUpdateColor`: Color for patch updates - bug fixes (default: `#4ecdc4` / `#2d7d7d` for dark theme)
+- `minorUpdateColor`: Color for minor updates - new features (default: `#ffa726` / `#cc8500` for dark theme)
+- `majorUpdateColor`: Color for major updates - breaking changes (default: `#ff6b6b` / `#cc5555` for dark theme)
+
+> **Note**: Update type colors automatically adapt to your VS Code theme. Light theme uses the default colors, while dark theme uses darker variants for better visibility.
 
 ### Commands Available
 
