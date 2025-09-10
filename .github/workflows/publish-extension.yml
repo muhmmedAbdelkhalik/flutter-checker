@@ -59,9 +59,9 @@ jobs:
         run: |
           # Get the new version from package.json
           NEW_VERSION=$(node -p "require('./package.json').version")
-          # Update the version in extension.vsixmanifest to match package.json
-          sed -i "s/Version=\"[^\"]*\"/Version=\"$NEW_VERSION\"/" extension.vsixmanifest
-          echo "Updated extension.vsixmanifest version to $NEW_VERSION"
+          # Update ONLY the Identity version in extension.vsixmanifest to match package.json
+          sed -i 's|<Identity Language="en-US" Id="flutter-checker" Version="[^"]*" Publisher="abdelkhalik" />|<Identity Language="en-US" Id="flutter-checker" Version="'$NEW_VERSION'" Publisher="abdelkhalik" />|' extension.vsixmanifest
+          echo "Updated extension.vsixmanifest Identity version to $NEW_VERSION"
 
       - name: Build extension
         run: npm run build
