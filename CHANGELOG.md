@@ -5,16 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [Released]
 
-## [1.1.4] - 2025-01-10
+## [1.2.3] - 2025-09-10
+
+### 🚀 Added
+- **Status Bar Tracking**: Real-time status bar display showing package update counts and checking status
+- **Status Bar Configuration**: New settings for controlling status bar visibility and priority position
+  - `flutterChecker.showStatusBar`: Enable/disable status bar item (default: `true`)
+  - `flutterChecker.statusBarPriority`: Control status bar item position (default: `100`)
+
+### 🔧 Removed
+- **Open Package Command**: Removed "Open Package on pub.dev" command and its activation event for cleaner interface
+
+### 🎯 Enhanced
+- **User Experience**: Streamlined command palette with focus on core functionality
+- **Status Visibility**: Better visibility of package checking progress and results through status bar
+- **Configuration**: More granular control over extension behavior and display options
+
+## [1.1.4] - 2025-09-09
 
 ### 🔧 Fixed
 - **Command registration reliability**: Enhanced activation events to ensure commands are always available
 - **Extension activation**: Added `workspaceContains:**/pubspec.yaml` and `onCommand:` activation events
 - **Production stability**: Removed excessive debug logging while maintaining error reporting
 
-## [1.1.3] - 2025-01-09
+## [1.1.3] - 2025-09-09
 
 ### 🚀 Added
 - **Smart Detection**: Automatic package checking when opening/modifying pubspec.yaml files
