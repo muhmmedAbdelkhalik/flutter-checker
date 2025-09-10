@@ -2,7 +2,7 @@
   "name": "flutter-checker",
   "displayName": "Flutter Checker",
   "description": "Check for outdated packages in Flutter/Dart pubspec.yaml files",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "publisher": "abdelkhalik",
   "icon": "assets/icon.png",
   "repository": {
