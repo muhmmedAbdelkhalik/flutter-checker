@@ -55,6 +55,11 @@ jobs:
           echo "new=$NEW_VERSION" >> $GITHUB_OUTPUT
           echo "New version: $NEW_VERSION"
 
+      - name: Update extension.vsixmanifest
+        run: |
+          # Update the version in extension.vsixmanifest to match package.json
+          sed -i "s/Version=\"[^\"]*\"/Version=\"$NEW_VERSION\"/" extension.vsixmanifest
+          echo "Updated extension.vsixmanifest version to $NEW_VERSION"
 
       - name: Build extension
         run: npm run build
@@ -63,7 +68,7 @@ jobs:
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add package.json
+          git add package.json extension.vsixmanifest
           git commit -m "Bump version to $(node -p "require('./package.json').version")"
           git tag "v$(node -p "require('./package.json').version")"
           git push origin main

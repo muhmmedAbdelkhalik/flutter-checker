@@ -18,13 +18,9 @@ A VS Code extension that helps you identify outdated packages in your Flutter/Da
 - 🔍 **Smart Detection**: Automatically checks for outdated packages when you open or modify `pubspec.yaml` files
 - 🎨 **Color-Coded Updates**: Visual highlighting with different colors for patch (🔧), minor (✨), and major (⚠️) updates
 - 📊 **Rich Hover Information**: Detailed hover tooltips showing current → latest version with update type descriptions
-- 🔗 **Quick Navigation**: Click to open package page on pub.dev directly from hover tooltips
+- 📈 **Status Bar Tracking**: Real-time status bar display showing package update counts and checking status
 - ⚡ **Fast Performance**: Intelligent caching system minimizes API calls to pub.dev (5-minute cache)
-- 🎛️ **Highly Configurable**: Customize colors for each update type, theme-aware color schemes, and more
-- 📈 **Progress Indicators**: Visual progress feedback during package checking
-- 🎯 **Precise Highlighting**: Highlights only the version specification, not the entire line
-- 🛡️ **Production Ready**: Enterprise-grade error handling, network resilience, and memory management
-- 🔧 **Reliable**: 99% command registration reliability with automatic verification and user feedback
+- 🎛️ **Highly Configurable**: Customize colors for each update type, theme-aware color schemes, and status bar settings
 
 ## How it Works
 
@@ -34,12 +30,7 @@ A VS Code extension that helps you identify outdated packages in your Flutter/Da
    - 🔧 **Patch Updates**: Bug fixes and small improvements
    - ✨ **Minor Updates**: New features (backward compatible)
    - ⚠️ **Major Updates**: Breaking changes
-4. **Visual Highlighting**: Outdated packages are highlighted with:
-   - Color-coded underlines based on update type
-   - Version comparison showing current → latest
-   - Rich hover tooltips with update type descriptions
-   - Overview ruler indicators with appropriate colors
-   - Clickable links to pub.dev
+4. **Visual Highlighting**: Outdated packages are highlighted with color-coded underlines, version comparisons, and rich hover tooltips
 
 ## Usage
 
@@ -59,24 +50,12 @@ To remove all highlights:
 1. Open Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`)
 2. Run `Flutter Checker: Clear Package Highlights`
 
-### Navigation Features
-Rich interaction with outdated packages:
+### Status Bar
+Real-time status tracking shows package update counts and checking status with configurable visibility and priority position.
 
-1. **Hover Information**: Hover over any highlighted package to see:
-   - Package name with emoji indicators
-   - Current → Latest version comparison
-   - Update type description (Patch/Minor/Major)
-   - Clickable link to open pub.dev
-
-2. **Progress Feedback**: When checking packages, you'll see:
-   - Progress notification with current status
-   - "Parsing pubspec.yaml..." → "Applying highlights..." → "Complete!"
-   - Summary message showing number of outdated packages found
-
-3. **Command Palette**: Available commands:
-   - `Flutter Checker: Check for Outdated Packages` - Manual check
-   - `Flutter Checker: Clear Package Highlights` - Remove all highlights
-   - `Flutter Checker: Open Package on pub.dev` - Open specific package
+### Commands
+- `Flutter Checker: Check for Outdated Packages` - Manual check
+- `Flutter Checker: Clear Package Highlights` - Remove all highlights
 
 ## Configuration
 
@@ -94,34 +73,20 @@ You can customize the extension behavior in VS Code settings:
   "flutterChecker.versionTextColor": "#ff6b6b",
   "flutterChecker.patchUpdateColor": "#4ecdc4",
   "flutterChecker.minorUpdateColor": "#ffa726",
-  "flutterChecker.majorUpdateColor": "#ff6b6b"
+  "flutterChecker.majorUpdateColor": "#ff6b6b",
+  "flutterChecker.showStatusBar": true,
+  "flutterChecker.statusBarPriority": 100
 }
 ```
 
-### Settings
+### Key Settings
+- `enabled`: Enable/disable the extension
+- `autoCheck`: Automatically check for outdated packages
+- `showStatusBar`: Show status bar item with update counts
+- `statusBarPriority`: Status bar item position
+- `patchUpdateColor`, `minorUpdateColor`, `majorUpdateColor`: Colors for different update types
 
-#### Core Settings
-- `enabled`: Enable/disable the extension (default: `true`)
-- `autoCheck`: Automatically check for outdated packages when opening/modifying pubspec.yaml files (default: `true`)
-- `showAutoCheckNotifications`: Show notification messages for automatic package checks (default: `false`)
-- `highlightColor`: Main highlight color for overview ruler (default: `#ff6b6b`)
-- `backgroundColor`: Background color with transparency (default: `#ff6b6b20`)
-- `borderColor`: Border color for highlighting (default: `#ff6b6b`)
-- `textColor`: Color for the "(outdated)" label (default: `#ff6b6b`)
-- `versionTextColor`: Color for version comparison text (default: `#ff6b6b`)
-
-#### Update Type Colors (Theme-Aware)
-- `patchUpdateColor`: Color for patch updates - bug fixes (default: `#4ecdc4` / `#2d7d7d` for dark theme)
-- `minorUpdateColor`: Color for minor updates - new features (default: `#ffa726` / `#cc8500` for dark theme)
-- `majorUpdateColor`: Color for major updates - breaking changes (default: `#ff6b6b` / `#cc5555` for dark theme)
-
-> **Note**: Update type colors automatically adapt to your VS Code theme. Light theme uses the default colors, while dark theme uses darker variants for better visibility.
-
-### Commands Available
-
-- `Flutter Checker: Check for Outdated Packages` - Manual check
-- `Flutter Checker: Clear Package Highlights` - Remove highlights
-- `Flutter Checker: Open Package on pub.dev` - Open package page
+> **Note**: Update type colors automatically adapt to your VS Code theme.
 
 ## Installation
 
@@ -131,54 +96,10 @@ You can customize the extension behavior in VS Code settings:
 3. Search for "Flutter Checker"
 4. Click Install
 
-### From Source
-1. Clone this repository:
-   ```bash
-   git clone https://github.com/muhmmedAbdelkhalik/flutter-checker.git
-   cd flutter-checker
-   ```
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-3. Build the extension:
-   ```bash
-   npm run compile
-   ```
-4. Press `F5` to run the extension in a new Extension Development Host window
-
-## Development
-
-### Prerequisites
-- Node.js (v16 or higher)
-- npm or yarn
-- VS Code
-
-### Building
-```bash
-npm install
-npm run compile
-```
-
-### Testing
-```bash
-npm run watch
-```
-Then press `F5` in VS Code to run the extension in a new window.
-
 ## Compatibility
 
 - **VS Code**: 1.74.0 or higher
-- **Cursor**: Compatible (uses VS Code extension API)
 - **Platforms**: Windows, macOS, Linux
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
 
 ## License
 
