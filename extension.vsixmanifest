@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-	<PackageManifest Version="1.1.8" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
+	<PackageManifest Version="1.1.9" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
 		<Metadata>
-			<Identity Language="en-US" Id="flutter-checker" Version="1.1.8" Publisher="abdelkhalik" />
+			<Identity Language="en-US" Id="flutter-checker" Version="1.1.9" Publisher="abdelkhalik" />
 			<DisplayName>Flutter Checker</DisplayName>
 			<Description xml:space="preserve">Check for outdated packages in Flutter/Dart pubspec.yaml files</Description>
 			<Tags>yaml,YAML,__ext_yml,__ext_yaml</Tags>
