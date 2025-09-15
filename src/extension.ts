@@ -1,13 +1,15 @@
 import * as vscode from 'vscode';
-import { PackageChecker } from './packageChecker';
+import { PackageChecker, OutdatedPackage } from './packageChecker';
 import { DecorationProvider } from './decorationProvider';
 import { StatusBarProvider, StatusBarState } from './statusBarProvider';
+import { UpdateDependencyCodeActionProvider } from './codeActionProvider';
 
 // Extension module loaded
 
 let packageChecker: PackageChecker;
 let decorationProvider: DecorationProvider;
 let statusBarProvider: StatusBarProvider;
+const outdatedByDoc = new Map<string, OutdatedPackage[]>();
 
 export async function activate(context: vscode.ExtensionContext) {
     try {
@@ -45,6 +47,32 @@ export async function activate(context: vscode.ExtensionContext) {
             'flutter-checker.clearHighlights',
             () => {
                 decorationProvider.clearDecorations();
+            }
+        );
+
+        // Update commands: apply version update and optionally run flutter pub get
+        // These are internal commands used by CodeActions and hover links, not exposed in Command Palette
+        vscode.commands.registerCommand(
+            'flutter-checker.updatePackage',
+            async (args?: any) => {
+                try {
+                    await handleUpdatePackageCommand(args, /*defaultRunPubGet*/ true);
+                } catch (error) {
+                    console.error('Error in updatePackage command:', error);
+                    vscode.window.showErrorMessage('Flutter Checker: Failed to update package');
+                }
+            }
+        );
+
+        vscode.commands.registerCommand(
+            'flutter-checker.updatePackageNoInstall',
+            async (args?: any) => {
+                try {
+                    await handleUpdatePackageCommand(args, /*defaultRunPubGet*/ false);
+                } catch (error) {
+                    console.error('Error in updatePackageNoInstall command:', error);
+                    vscode.window.showErrorMessage('Flutter Checker: Failed to update package');
+                }
             }
         );
 
@@ -148,6 +176,15 @@ export async function activate(context: vscode.ExtensionContext) {
             onDidChangeWorkspaceFolders
         );
 
+        // Register CodeAction provider for pubspec.yaml
+        context.subscriptions.push(
+            vscode.languages.registerCodeActionsProvider(
+                { language: 'yaml', pattern: '**/pubspec.yaml' },
+                new UpdateDependencyCodeActionProvider(doc => outdatedByDoc.get(doc.uri.toString()) ?? []),
+                { providedCodeActionKinds: [vscode.CodeActionKind.QuickFix] }
+            )
+        );
+
         console.log('All commands and event listeners registered successfully!');
         
         // Check already open documents for pubspec.yaml files
@@ -218,6 +255,59 @@ async function findPubspecFiles(): Promise<vscode.Uri[]> {
     }
 
     return pubspecFiles;
+}
+
+async function handleUpdatePackageCommand(args: any, defaultRunPubGet: boolean) {
+    const editor = vscode.window.activeTextEditor;
+    if (!editor || !editor.document.fileName.endsWith('pubspec.yaml')) {
+        vscode.window.showWarningMessage('Open a pubspec.yaml to update a package.');
+        return;
+    }
+
+    const document = editor.document;
+    const workspaceEdit = new vscode.WorkspaceEdit();
+
+    // Expect args: { packageName, latestVersion, range: {start:{line,character}, end:{line,character}}, keepPrefix?: boolean, runPubGet?: boolean }
+    if (!args || !args.latestVersion || !args.range) {
+        // Fallback: do nothing
+        return;
+    }
+
+    const range = new vscode.Range(
+        new vscode.Position(args.range.start.line, args.range.start.character),
+        new vscode.Position(args.range.end.line, args.range.end.character)
+    );
+
+    const originalSpec = document.getText(range);
+    const prefixMatch = originalSpec.match(/^[\^~><=\s]*/)?.[0] ?? '';
+    const keepPrefix = args.keepPrefix === true;
+    const replacement = keepPrefix ? `${prefixMatch.trim()}${args.latestVersion}` : args.latestVersion;
+
+    workspaceEdit.replace(document.uri, range, replacement);
+    const applied = await vscode.workspace.applyEdit(workspaceEdit);
+    if (!applied) {
+        vscode.window.showErrorMessage('Flutter Checker: Failed to apply version edit.');
+        return;
+    }
+
+    await document.save();
+
+    const runPubGet = typeof args.runPubGet === 'boolean' ? args.runPubGet : defaultRunPubGet;
+    if (runPubGet) {
+        await runFlutterPubGet(document.uri);
+    }
+}
+
+async function runFlutterPubGet(uri: vscode.Uri) {
+    try {
+        const cwd = vscode.workspace.getWorkspaceFolder(uri)?.uri.fsPath;
+        if (!cwd) return;
+        const terminal = vscode.window.createTerminal({ name: 'Flutter Checker', cwd });
+        terminal.show(true);
+        terminal.sendText('flutter pub get');
+    } catch (error) {
+        console.error('Failed to run flutter pub get:', error);
+    }
 }
 
 async function initializeStatusBarState() {
@@ -319,6 +409,9 @@ async function checkOutdatedPackagesForDocument(document: vscode.TextDocument, e
             if (progress) progress.report({ increment: 0, message: "Parsing pubspec.yaml..." });
 
             const outdatedPackages = await packageChecker.checkOutdatedPackages(document);
+
+            // Save results for CodeAction provider
+            outdatedByDoc.set(document.uri.toString(), outdatedPackages);
 
             if (progress) progress.report({ increment: 50, message: "Applying highlights..." });
 

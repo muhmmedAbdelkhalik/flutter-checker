@@ -18,6 +18,7 @@ A VS Code extension that helps you identify outdated packages in your Flutter/Da
 - 🔍 **Smart Detection**: Automatically checks for outdated packages when you open or modify `pubspec.yaml` files
 - 🎨 **Color-Coded Updates**: Visual highlighting with different colors for patch (🔧), minor (✨), and major (⚠️) updates
 - 📊 **Rich Hover Information**: Detailed hover tooltips showing current → latest version with update type descriptions
+- 🚀 **One-Click Updates**: Quick Fix actions and hover links to update packages with or without running `flutter pub get`
 - 📈 **Status Bar Tracking**: Real-time status bar display showing package update counts and checking status
 - ⚡ **Fast Performance**: Intelligent caching system minimizes API calls to pub.dev (5-minute cache)
 - 🎛️ **Highly Configurable**: Customize colors for each update type, theme-aware color schemes, and status bar settings
@@ -49,6 +50,22 @@ You can also manually trigger the check:
 To remove all highlights:
 1. Open Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`)
 2. Run `Flutter Checker: Clear Package Highlights`
+
+### Updating Packages
+You can update outdated packages directly from the editor:
+
+#### Quick Fix Actions
+1. Place your cursor on an outdated package version
+2. Click the lightbulb icon or press `Ctrl+.` / `Cmd+.`
+3. Choose from:
+   - **"Update [package] to [version]"** - Updates the version and runs `flutter pub get`
+   - **"Update [package] to [version] (no pub get)"** - Updates the version only
+
+#### Hover Links
+1. Hover over any highlighted outdated package version
+2. Click the update links in the tooltip:
+   - **"Update to [version]"** - Updates and runs `flutter pub get`
+   - **"Update (no pub get)"** - Updates without running `flutter pub get`
 
 ### Status Bar
 Real-time status tracking shows package update counts and checking status with configurable visibility and priority position.

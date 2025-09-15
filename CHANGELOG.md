@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Released]
 
+## [1.2.4] - 2025-09-15
+
+### 🚀 Added
+- **Update Options**: 
+  - Update with `flutter pub get`
+  - Update without running `flutter pub get`
+
 ## [1.2.3] - 2025-09-10
 
 ### 🚀 Added

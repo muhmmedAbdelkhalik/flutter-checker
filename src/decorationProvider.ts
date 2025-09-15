@@ -146,7 +146,34 @@ export class DecorationProvider {
         const updateTypeDescription = this.getUpdateTypeDescription(pkg.updateType);
         message.appendMarkdown(`**Update Type:** ${updateTypeEmoji} ${updateTypeDescription}\n\n`);
 
+        // Add quick actions
+        const argsWithPubGet = encodeURIComponent(JSON.stringify({
+            packageName: pkg.name,
+            latestVersion: pkg.latestVersion,
+            range: {
+                start: { line: pkg.range.start.line, character: pkg.range.start.character },
+                end: { line: pkg.range.end.line, character: pkg.range.end.character }
+            },
+            keepPrefix: true,
+            runPubGet: true
+        }));
+        const argsNoPubGet = encodeURIComponent(JSON.stringify({
+            packageName: pkg.name,
+            latestVersion: pkg.latestVersion,
+            range: {
+                start: { line: pkg.range.start.line, character: pkg.range.start.character },
+                end: { line: pkg.range.end.line, character: pkg.range.end.character }
+            },
+            keepPrefix: true,
+            runPubGet: false
+        }));
+
         message.isTrusted = true;
+        message.appendMarkdown(
+            `[Update to ${pkg.latestVersion}](command:flutter-checker.updatePackage?${argsWithPubGet}) | ` +
+            `[Update (no pub get)](command:flutter-checker.updatePackageNoInstall?${argsNoPubGet})\n`
+        );
+
         return message;
     }
 
