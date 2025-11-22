@@ -252,7 +252,7 @@ export class PackageChecker {
                 {
                     timeout: 15000,
                     headers: {
-                        'User-Agent': 'Flutter-Checker-VSCode-Extension/1.2.4'
+                        'User-Agent': 'Flutter-Checker-VSCode-Extension/1.2.5'
                     },
                     httpsAgent: httpsAgent, // Use strict SSL validation
                     validateStatus: (status) => status < 500,
