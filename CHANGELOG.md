@@ -7,6 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Released]
 
+## [1.2.5] - 2025-01-XX
+
+### 🔒 Security Fixes
+
+#### Critical Security Vulnerabilities Fixed
+- **Axios DoS Vulnerability (CVE GHSA-4hjh-wcwx-xvwj)**: Updated axios from ^1.6.0 to ^1.12.0 to fix high severity DoS attack through lack of data size check (CVSS Score: 7.5)
+- **tar-fs Symlink Vulnerability (CVE GHSA-vj76-c3g6-qr5v)**: Updated transitive dependency tar-fs to 2.1.4+ to fix symlink validation bypass vulnerability
+
+#### Input Validation & Injection Prevention
+- **SSL/TLS Certificate Validation**: Enforced strict SSL certificate validation for pub.dev API requests with TLS 1.2+ requirement
+- **Package Name Injection Prevention**: Added `sanitizePackageName()` method to validate against Dart package naming convention (alphanumeric + underscore, max 64 chars)
+- **Version String Injection Prevention**: Added `isValidVersionString()` method with strict semver regex validation and length limits
+- **Markdown Injection Prevention**: Added `sanitizeForMarkdown()` method to escape markdown special characters in hover tooltips
+- **Input Validation for Commands**: Added comprehensive validation for update command arguments to ensure files are within workspace boundaries
+
+### 🚀 Additional Security Improvements
+- **API Rate Limiting**: Implemented 100ms minimum interval between API requests to prevent abuse and IP blocking
+- **Global Namespace Pollution Fix**: Replaced global timeout variable with module-level variable for cleaner architecture
+- **Enhanced File Detection Security**: Improved file validation to ensure operations only occur on files within workspace boundaries
+- **Response Size Limits**: Limited API response size to 1MB to prevent memory exhaustion
+- **Redirect Limits**: Limited HTTP redirects to 3 maximum for security
+
+### 🔧 Fixed
+- **Version Display**: Fixed escaped dots in version numbers in hover tooltips (e.g., "4\.3\.7" now displays as "4.3.7")
+
+### 📊 Security Audit Results
+- **Before**: 2 high severity vulnerabilities
+- **After**: 0 vulnerabilities (npm audit clean)
+
 ## [1.2.4] - 2025-09-15
 
 ### 🚀 Added

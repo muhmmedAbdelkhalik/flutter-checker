@@ -11,6 +11,9 @@ let decorationProvider: DecorationProvider;
 let statusBarProvider: StatusBarProvider;
 const outdatedByDoc = new Map<string, OutdatedPackage[]>();
 
+// Module-level variable for debounce timeout (replaces global namespace pollution)
+let pubspecChangeTimeout: NodeJS.Timeout | undefined;
+
 export async function activate(context: vscode.ExtensionContext) {
     try {
         console.log('Flutter Checker extension is now active!');
@@ -79,10 +82,10 @@ export async function activate(context: vscode.ExtensionContext) {
         // Register event listeners for automatic detection
         const onDidOpenTextDocument = vscode.workspace.onDidOpenTextDocument(async (document) => {
             try {
-                if (document.fileName.endsWith('pubspec.yaml')) {
+                if (isValidPubspecFile(document)) {
                     const config = vscode.workspace.getConfiguration('flutterChecker');
                     const autoCheck = config.get<boolean>('autoCheck', true);
-                    
+
                     if (autoCheck) {
                         console.log('pubspec.yaml file opened, automatically checking for outdated packages');
                         const editor = vscode.window.visibleTextEditors.find(e => e.document === document);
@@ -98,17 +101,19 @@ export async function activate(context: vscode.ExtensionContext) {
 
         const onDidChangeTextDocument = vscode.workspace.onDidChangeTextDocument(async (event) => {
             try {
-                if (event.document.fileName.endsWith('pubspec.yaml')) {
+                if (isValidPubspecFile(event.document)) {
                     const config = vscode.workspace.getConfiguration('flutterChecker');
                     const autoCheck = config.get<boolean>('autoCheck', true);
-                    
+
                     if (autoCheck) {
                         console.log('pubspec.yaml file modified, automatically checking for outdated packages');
                         const editor = vscode.window.visibleTextEditors.find(e => e.document === event.document);
                         if (editor) {
                             // Debounce the change detection to avoid too many API calls
-                            clearTimeout((global as any).pubspecChangeTimeout);
-                            (global as any).pubspecChangeTimeout = setTimeout(async () => {
+                            if (pubspecChangeTimeout) {
+                                clearTimeout(pubspecChangeTimeout);
+                            }
+                            pubspecChangeTimeout = setTimeout(async () => {
                                 try {
                                     await checkOutdatedPackagesForDocument(event.document, editor, false); // silent mode
                                 } catch (error) {
@@ -125,10 +130,10 @@ export async function activate(context: vscode.ExtensionContext) {
 
         const onDidSaveTextDocument = vscode.workspace.onDidSaveTextDocument(async (document) => {
             try {
-                if (document.fileName.endsWith('pubspec.yaml')) {
+                if (isValidPubspecFile(document)) {
                     const config = vscode.workspace.getConfiguration('flutterChecker');
                     const autoCheck = config.get<boolean>('autoCheck', true);
-                    
+
                     if (autoCheck) {
                         console.log('pubspec.yaml file saved, automatically checking for outdated packages');
                         const editor = vscode.window.visibleTextEditors.find(e => e.document === document);
@@ -144,10 +149,10 @@ export async function activate(context: vscode.ExtensionContext) {
 
         const onDidChangeActiveTextEditor = vscode.window.onDidChangeActiveTextEditor(async (editor) => {
             try {
-                if (editor && editor.document.fileName.endsWith('pubspec.yaml')) {
+                if (editor && isValidPubspecFile(editor.document)) {
                     const config = vscode.workspace.getConfiguration('flutterChecker');
                     const autoCheck = config.get<boolean>('autoCheck', true);
-                    
+
                     if (autoCheck) {
                         console.log('Switched to pubspec.yaml file, automatically checking for outdated packages');
                         await checkOutdatedPackagesForDocument(editor.document, editor, false); // silent mode
@@ -192,10 +197,10 @@ export async function activate(context: vscode.ExtensionContext) {
             try {
                 const config = vscode.workspace.getConfiguration('flutterChecker');
                 const autoCheck = config.get<boolean>('autoCheck', true);
-                
+
                 if (autoCheck) {
                     for (const editor of vscode.window.visibleTextEditors) {
-                        if (editor.document.fileName.endsWith('pubspec.yaml')) {
+                        if (isValidPubspecFile(editor.document)) {
                             console.log('Found already open pubspec.yaml file, automatically checking for outdated packages');
                             try {
                                 await checkOutdatedPackagesForDocument(editor.document, editor, false); // silent mode
@@ -257,10 +262,56 @@ async function findPubspecFiles(): Promise<vscode.Uri[]> {
     return pubspecFiles;
 }
 
+/**
+ * Validate version string format for security
+ */
+function isValidVersionString(version: string): boolean {
+    if (!version || typeof version !== 'string') {
+        return false;
+    }
+
+    // Must match semver pattern: digits.digits.digits with optional pre-release/build
+    const safePattern = /^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.-]+)?(\+[a-zA-Z0-9.-]+)?$/;
+    if (!safePattern.test(version)) {
+        return false;
+    }
+
+    // Length check
+    if (version.length > 100) {
+        return false;
+    }
+
+    return true;
+}
+
+/**
+ * Validate that file is a pubspec.yaml within workspace
+ */
+function isValidPubspecFile(document: vscode.TextDocument): boolean {
+    if (!document.fileName.endsWith('pubspec.yaml')) {
+        return false;
+    }
+
+    // Ensure file is within workspace
+    const workspaceFolder = vscode.workspace.getWorkspaceFolder(document.uri);
+    if (!workspaceFolder) {
+        console.warn(`File ${document.fileName} is not within workspace`);
+        return false;
+    }
+
+    return true;
+}
+
 async function handleUpdatePackageCommand(args: any, defaultRunPubGet: boolean) {
     const editor = vscode.window.activeTextEditor;
-    if (!editor || !editor.document.fileName.endsWith('pubspec.yaml')) {
-        vscode.window.showWarningMessage('Open a pubspec.yaml to update a package.');
+    if (!editor) {
+        vscode.window.showWarningMessage('No active editor found.');
+        return;
+    }
+
+    // Validate that this is a pubspec.yaml file within workspace
+    if (!isValidPubspecFile(editor.document)) {
+        vscode.window.showWarningMessage('Open a pubspec.yaml file in your workspace to update a package.');
         return;
     }
 
@@ -269,7 +320,14 @@ async function handleUpdatePackageCommand(args: any, defaultRunPubGet: boolean) 
 
     // Expect args: { packageName, latestVersion, range: {start:{line,character}, end:{line,character}}, keepPrefix?: boolean, runPubGet?: boolean }
     if (!args || !args.latestVersion || !args.range) {
-        // Fallback: do nothing
+        console.warn('Invalid arguments for update package command');
+        return;
+    }
+
+    // Validate version string to prevent injection
+    if (!isValidVersionString(args.latestVersion)) {
+        vscode.window.showErrorMessage(`Invalid version format: ${args.latestVersion}`);
+        console.error(`Version validation failed for: ${args.latestVersion}`);
         return;
     }
 
@@ -470,11 +528,11 @@ async function checkOutdatedPackagesForDocument(document: vscode.TextDocument, e
 export function deactivate() {
     try {
         console.log('Flutter Checker extension is being deactivated');
-        
+
         // Clear any pending timeouts
-        if ((global as any).pubspecChangeTimeout) {
-            clearTimeout((global as any).pubspecChangeTimeout);
-            (global as any).pubspecChangeTimeout = undefined;
+        if (pubspecChangeTimeout) {
+            clearTimeout(pubspecChangeTimeout);
+            pubspecChangeTimeout = undefined;
         }
         
         // Dispose of decoration provider

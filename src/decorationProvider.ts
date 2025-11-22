@@ -136,20 +136,42 @@ export class DecorationProvider {
         }
     }
 
+    /**
+     * Sanitize string for safe use in markdown to prevent injection attacks
+     */
+    private sanitizeForMarkdown(str: string): string {
+        if (!str || typeof str !== 'string') {
+            return '';
+        }
+        // Escape markdown special characters and remove any potential command injection
+        // Note: dots (.) are not escaped as they're safe and needed for version numbers
+        return str
+            .replace(/[\\`*_{}[\]()#+\-!|]/g, '\\$&') // Escape markdown syntax (excluding dots)
+            .replace(/[<>]/g, '') // Remove angle brackets
+            .replace(/\n/g, ' '); // Remove newlines
+    }
+
     private createHoverMessage(pkg: OutdatedPackage): vscode.MarkdownString {
         const message = new vscode.MarkdownString();
-        message.appendMarkdown(`## 📦 ${pkg.name}\n\n`);
-        message.appendMarkdown(`**Current:** \`${pkg.currentVersion}\` → **Latest:** \`${pkg.latestVersion}\`\n\n`);
+
+        // Sanitize all user-controlled input before embedding in markdown
+        const safeName = this.sanitizeForMarkdown(pkg.name);
+        const safeCurrentVersion = this.sanitizeForMarkdown(pkg.currentVersion);
+        const safeLatestVersion = this.sanitizeForMarkdown(pkg.latestVersion);
+
+        message.appendMarkdown(`## 📦 ${safeName}\n\n`);
+        message.appendMarkdown(`**Current:** \`${safeCurrentVersion}\` → **Latest:** \`${safeLatestVersion}\`\n\n`);
         
         // Add update type information
         const updateTypeEmoji = this.getUpdateTypeEmoji(pkg.updateType);
         const updateTypeDescription = this.getUpdateTypeDescription(pkg.updateType);
         message.appendMarkdown(`**Update Type:** ${updateTypeEmoji} ${updateTypeDescription}\n\n`);
 
-        // Add quick actions
+        // Add quick actions with validated data
+        // Note: pkg.name and pkg.latestVersion have already been validated by packageChecker
         const argsWithPubGet = encodeURIComponent(JSON.stringify({
-            packageName: pkg.name,
-            latestVersion: pkg.latestVersion,
+            packageName: pkg.name, // Already validated by sanitizePackageName
+            latestVersion: pkg.latestVersion, // Already validated by isValidVersionString
             range: {
                 start: { line: pkg.range.start.line, character: pkg.range.start.character },
                 end: { line: pkg.range.end.line, character: pkg.range.end.character }
@@ -158,8 +180,8 @@ export class DecorationProvider {
             runPubGet: true
         }));
         const argsNoPubGet = encodeURIComponent(JSON.stringify({
-            packageName: pkg.name,
-            latestVersion: pkg.latestVersion,
+            packageName: pkg.name, // Already validated by sanitizePackageName
+            latestVersion: pkg.latestVersion, // Already validated by isValidVersionString
             range: {
                 start: { line: pkg.range.start.line, character: pkg.range.start.character },
                 end: { line: pkg.range.end.line, character: pkg.range.end.character }
@@ -168,9 +190,9 @@ export class DecorationProvider {
             runPubGet: false
         }));
 
-        message.isTrusted = true;
+        message.isTrusted = true; // Required for command links
         message.appendMarkdown(
-            `[Update to ${pkg.latestVersion}](command:flutter-checker.updatePackage?${argsWithPubGet}) | ` +
+            `[Update to ${safeLatestVersion}](command:flutter-checker.updatePackage?${argsWithPubGet}) | ` +
             `[Update (no pub get)](command:flutter-checker.updatePackageNoInstall?${argsNoPubGet})\n`
         );
 
