@@ -144,8 +144,9 @@ export class DecorationProvider {
             return '';
         }
         // Escape markdown special characters and remove any potential command injection
+        // Note: dots (.) are not escaped as they're safe and needed for version numbers
         return str
-            .replace(/[\\`*_{}[\]()#+\-.!|]/g, '\\$&') // Escape markdown syntax
+            .replace(/[\\`*_{}[\]()#+\-!|]/g, '\\$&') // Escape markdown syntax (excluding dots)
             .replace(/[<>]/g, '') // Remove angle brackets
             .replace(/\n/g, ' '); // Remove newlines
     }
