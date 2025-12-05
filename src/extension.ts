@@ -1,14 +1,18 @@
 import * as vscode from 'vscode';
-import { PackageChecker, OutdatedPackage } from './packageChecker';
+import { PackageChecker, OutdatedPackage, UpdateType } from './packageChecker';
 import { DecorationProvider } from './decorationProvider';
-import { StatusBarProvider, StatusBarState } from './statusBarProvider';
+import { StatusBarProvider } from './statusBarProvider';
 import { UpdateDependencyCodeActionProvider } from './codeActionProvider';
+import { BulkUpdateProvider } from './bulkUpdateProvider';
+import { BulkUpdateCodeLensProvider } from './bulkUpdateCodeLensProvider';
 
 // Extension module loaded
 
 let packageChecker: PackageChecker;
 let decorationProvider: DecorationProvider;
 let statusBarProvider: StatusBarProvider;
+let bulkUpdateProvider: BulkUpdateProvider;
+let bulkUpdateCodeLensProvider: BulkUpdateCodeLensProvider;
 const outdatedByDoc = new Map<string, OutdatedPackage[]>();
 
 // Module-level variable for debounce timeout (replaces global namespace pollution)
@@ -23,6 +27,8 @@ export async function activate(context: vscode.ExtensionContext) {
         packageChecker = new PackageChecker();
         decorationProvider = new DecorationProvider();
         statusBarProvider = new StatusBarProvider();
+        bulkUpdateProvider = new BulkUpdateProvider(context);
+        bulkUpdateCodeLensProvider = new BulkUpdateCodeLensProvider((doc) => outdatedByDoc.get(doc.uri.toString()) ?? []);
 
         // Connect status bar provider to package checker
         packageChecker.setStatusCallback((message: string, progress?: number) => {
@@ -45,6 +51,71 @@ export async function activate(context: vscode.ExtensionContext) {
             }
         );
         console.log('Registered checkOutdated command');
+
+        // Status bar clicked command - shows menu with quick actions
+        const statusBarClickedCommand = vscode.commands.registerCommand(
+            'flutter-checker.statusBarClicked',
+            async () => {
+                const editor = vscode.window.activeTextEditor;
+                const hasOutdatedPackages = editor &&
+                    isValidPubspecFile(editor.document) &&
+                    (outdatedByDoc.get(editor.document.uri.toString())?.length ?? 0) > 0;
+
+                if (hasOutdatedPackages) {
+                    // Show quick pick menu with bulk update options
+                    const packages = outdatedByDoc.get(editor.document.uri.toString()) ?? [];
+                    const safeCount = packages.filter(p => p.updateType === UpdateType.PATCH || p.updateType === UpdateType.MINOR).length;
+                    const patchCount = packages.filter(p => p.updateType === UpdateType.PATCH).length;
+
+                    const choice = await vscode.window.showQuickPick([
+                        {
+                            label: '$(rocket) Update All Safe',
+                            description: `${safeCount} packages (patch + minor)`,
+                            value: 'safe'
+                        },
+                        {
+                            label: '$(check) Update Patches Only',
+                            description: `${patchCount} packages`,
+                            value: 'patch'
+                        },
+                        {
+                            label: '$(list-selection) Select Packages',
+                            description: 'Choose which to update',
+                            value: 'custom'
+                        },
+                        {
+                            label: '$(sync) Re-check Packages',
+                            description: 'Check for outdated packages again',
+                            value: 'check'
+                        }
+                    ], {
+                        placeHolder: `${packages.length} outdated package${packages.length === 1 ? '' : 's'} found`
+                    });
+
+                    if (!choice) {
+                        return;
+                    }
+
+                    switch (choice.value) {
+                        case 'safe':
+                            await vscode.commands.executeCommand('flutter-checker.updateAllSafe');
+                            break;
+                        case 'patch':
+                            await vscode.commands.executeCommand('flutter-checker.updateAllPatch');
+                            break;
+                        case 'custom':
+                            await vscode.commands.executeCommand('flutter-checker.bulkUpdate');
+                            break;
+                        case 'check':
+                            await checkOutdatedPackages();
+                            break;
+                    }
+                } else {
+                    // No outdated packages or not in pubspec.yaml - just run check
+                    await checkOutdatedPackages();
+                }
+            }
+        );
 
         const clearHighlightsCommand = vscode.commands.registerCommand(
             'flutter-checker.clearHighlights',
@@ -75,6 +146,100 @@ export async function activate(context: vscode.ExtensionContext) {
                 } catch (error) {
                     console.error('Error in updatePackageNoInstall command:', error);
                     vscode.window.showErrorMessage('Flutter Checker: Failed to update package');
+                }
+            }
+        );
+
+        // Register bulk update commands
+        const updateAllSafeCommand = vscode.commands.registerCommand(
+            'flutter-checker.updateAllSafe',
+            async (uri?: vscode.Uri) => {
+                try {
+                    const document = uri
+                        ? await vscode.workspace.openTextDocument(uri)
+                        : vscode.window.activeTextEditor?.document;
+
+                    if (!document || !isValidPubspecFile(document)) {
+                        vscode.window.showWarningMessage('Please open a pubspec.yaml file first.');
+                        return;
+                    }
+
+                    const packages = outdatedByDoc.get(document.uri.toString()) ?? [];
+                    await bulkUpdateProvider.updateAllSafe(document, packages);
+
+                    // Refresh decorations after update
+                    const editor = vscode.window.visibleTextEditors.find(e => e.document === document);
+                    if (editor) {
+                        await checkOutdatedPackagesForDocument(document, editor, false);
+                    }
+
+                    // Refresh CodeLens
+                    bulkUpdateCodeLensProvider.refresh();
+                } catch (error) {
+                    console.error('Error in updateAllSafe command:', error);
+                    vscode.window.showErrorMessage('Failed to update packages');
+                }
+            }
+        );
+
+        const updateAllPatchCommand = vscode.commands.registerCommand(
+            'flutter-checker.updateAllPatch',
+            async (uri?: vscode.Uri) => {
+                try {
+                    const document = uri
+                        ? await vscode.workspace.openTextDocument(uri)
+                        : vscode.window.activeTextEditor?.document;
+
+                    if (!document || !isValidPubspecFile(document)) {
+                        vscode.window.showWarningMessage('Please open a pubspec.yaml file first.');
+                        return;
+                    }
+
+                    const packages = outdatedByDoc.get(document.uri.toString()) ?? [];
+                    await bulkUpdateProvider.updateAllPatch(document, packages);
+
+                    // Refresh decorations after update
+                    const editor = vscode.window.visibleTextEditors.find(e => e.document === document);
+                    if (editor) {
+                        await checkOutdatedPackagesForDocument(document, editor, false);
+                    }
+
+                    // Refresh CodeLens
+                    bulkUpdateCodeLensProvider.refresh();
+                } catch (error) {
+                    console.error('Error in updateAllPatch command:', error);
+                    vscode.window.showErrorMessage('Failed to update packages');
+                }
+            }
+        );
+
+        const bulkUpdateCommand = vscode.commands.registerCommand(
+            'flutter-checker.bulkUpdate',
+            async (uri?: vscode.Uri) => {
+                try {
+                    const document = uri
+                        ? await vscode.workspace.openTextDocument(uri)
+                        : vscode.window.activeTextEditor?.document;
+
+                    if (!document || !isValidPubspecFile(document)) {
+                        vscode.window.showWarningMessage('Please open a pubspec.yaml file first.');
+                        return;
+                    }
+
+                    const packages = outdatedByDoc.get(document.uri.toString()) ?? [];
+                    await bulkUpdateProvider.interactiveBulkUpdate(document, packages);
+
+                    // Refresh decorations after update
+                    const editor = vscode.window.visibleTextEditors.find(e => e.document === document);
+                    if (editor) {
+                        await checkOutdatedPackagesForDocument(document, editor, false);
+                    }
+
+                    // Refresh CodeLens
+                    bulkUpdateCodeLensProvider.refresh();
+                } catch (error) {
+                    console.error('Error in bulkUpdate command:', error);
+                    vscode.window.showErrorMessage('Failed to update packages');
                 }
             }
         );
@@ -171,7 +336,11 @@ export async function activate(context: vscode.ExtensionContext) {
         // Add to subscriptions
         context.subscriptions.push(
             checkOutdatedCommand,
+            statusBarClickedCommand,
             clearHighlightsCommand,
+            updateAllSafeCommand,
+            updateAllPatchCommand,
+            bulkUpdateCommand,
             decorationProvider,
             statusBarProvider,
             onDidOpenTextDocument,
@@ -187,6 +356,14 @@ export async function activate(context: vscode.ExtensionContext) {
                 { language: 'yaml', pattern: '**/pubspec.yaml' },
                 new UpdateDependencyCodeActionProvider(doc => outdatedByDoc.get(doc.uri.toString()) ?? []),
                 { providedCodeActionKinds: [vscode.CodeActionKind.QuickFix] }
+            )
+        );
+
+        // Register CodeLens provider for bulk updates
+        context.subscriptions.push(
+            vscode.languages.registerCodeLensProvider(
+                { language: 'yaml', pattern: '**/pubspec.yaml' },
+                bulkUpdateCodeLensProvider
             )
         );
 
@@ -479,7 +656,10 @@ async function checkOutdatedPackagesForDocument(document: vscode.TextDocument, e
 
             // Update status bar with final count
             statusBarProvider.setComplete(outdatedPackages.length, `Found ${outdatedPackages.length} outdated packages`);
-            
+
+            // Refresh CodeLens to show bulk update options
+            bulkUpdateCodeLensProvider.refresh();
+
             // Show notifications based on settings
             if (showProgress) {
                 // Manual check - always show notifications
@@ -488,7 +668,8 @@ async function checkOutdatedPackagesForDocument(document: vscode.TextDocument, e
                         `Found ${outdatedPackages.length} outdated package(s). Check the highlights in your pubspec.yaml file.`
                     );
                 } else {
-                    vscode.window.showInformationMessage('All packages are up to date!');
+                    // Show celebration notification with sparkles!
+                    vscode.window.showInformationMessage('✨ All packages are up to date! ✨');
                 }
             } else {
                 // Automatic check - only show notifications if enabled

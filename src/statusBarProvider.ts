@@ -27,7 +27,7 @@ export class StatusBarProvider {
             vscode.StatusBarAlignment.Right,
             priority
         );
-        this.statusBarItem.command = 'flutter-checker.checkOutdated';
+        this.statusBarItem.command = 'flutter-checker.statusBarClicked';
 
         this.updateStatus({
             state: StatusBarState.IDLE,
@@ -60,7 +60,7 @@ export class StatusBarProvider {
                     vscode.StatusBarAlignment.Right,
                     newPriority
                 );
-                this.statusBarItem.command = 'flutter-checker.checkOutdated';
+                this.statusBarItem.command = 'flutter-checker.statusBarClicked';
 
                 // Restore current state
                 this.updateStatus({

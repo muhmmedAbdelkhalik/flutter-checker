@@ -7,6 +7,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Released]
 
+## [1.3.0] - 2025-12-06
+
+### 🚀 New Features
+
+#### Bulk Package Updates
+The most requested feature is here! Update multiple packages at once with smart presets and safety controls.
+
+**Multiple Entry Points:**
+- **CodeLens**: Inline actions appear at the top of your `dependencies:` section
+  - `📦 Update All Safe (X)` - Updates all patch + minor versions
+  - `Select Packages... (X available)` - Custom multi-select interface
+- **Status Bar**: Click the status bar to access quick update menu
+  - Update All Safe (patch + minor)
+  - Update Patches Only (safest)
+  - Select Packages (custom selection)
+  - Re-check Packages
+- **Command Palette**: Keyboard-friendly access
+  - `Flutter Checker: Update All Safe Packages (Patch + Minor)`
+  - `Flutter Checker: Update All Patch Versions`
+  - `Flutter Checker: Bulk Update Packages...`
+
+**Smart Update Modes:**
+- **Quick Safe Updates**: One-click update of all patch and minor versions
+- **Patch Only**: Safest option - updates only bug fix versions
+- **Interactive Selection**: Multi-select picker with safe updates pre-selected
+- **Custom Presets**: Choose from Safe / Patches Only / Custom / Everything
+
+**Safety Features:**
+- ✅ Confirmation dialogs with package count breakdowns
+- ✅ Progress notifications showing X patch, Y minor, Z major updates
+- ✅ Atomic updates - all packages updated together
+- ✅ Auto-refresh decorations and CodeLens after updates
+- ✅ Error handling - continues on individual failures, shows summary
+- ✅ Automatic `flutter pub get` execution after updates
+
+**User Experience:**
+- Color-coded update type indicators (🟢 Patch, 🟡 Minor, 🔴 Major)
+- Modal dialogs with detailed package lists
+- Success/warning/error notifications with counts
+- ✨ **Simple Sparkle Notifications**: Delightful "All packages are up to date! ✨" message when everything is current
+- Zero-configuration - works out of the box
+
 ## [1.2.5] - 2025-01-XX
 
 ### 🔒 Security Fixes

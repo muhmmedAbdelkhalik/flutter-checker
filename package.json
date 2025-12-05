@@ -2,7 +2,7 @@
   "name": "flutter-checker",
   "displayName": "Flutter Checker",
   "description": "Check for outdated packages in Flutter/Dart pubspec.yaml files",
-  "version": "1.2.5",
+  "version": "1.3.0",
   "publisher": "abdelkhalik",
   "icon": "assets/icon.png",
   "repository": {
@@ -24,9 +24,7 @@
   },
   "activationEvents": [
     "onLanguage:yaml",
-    "workspaceContains:**/pubspec.yaml",
-    "onCommand:flutter-checker.checkOutdated",
-    "onCommand:flutter-checker.clearHighlights"
+    "workspaceContains:**/pubspec.yaml"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -41,6 +39,24 @@
         "command": "flutter-checker.clearHighlights",
         "title": "Clear Package Highlights",
         "category": "Flutter Checker"
+      },
+      {
+        "command": "flutter-checker.updateAllSafe",
+        "title": "Update All Safe Packages (Patch + Minor)",
+        "category": "Flutter Checker",
+        "icon": "$(rocket)"
+      },
+      {
+        "command": "flutter-checker.updateAllPatch",
+        "title": "Update All Patch Versions",
+        "category": "Flutter Checker",
+        "icon": "$(check)"
+      },
+      {
+        "command": "flutter-checker.bulkUpdate",
+        "title": "Bulk Update Packages...",
+        "category": "Flutter Checker",
+        "icon": "$(list-selection)"
       }
     ],
     "menus": {
@@ -154,6 +170,7 @@
     "@types/semver": "^7.7.1",
     "@types/vscode": "^1.74.0",
     "@vscode/vsce": "^3.6.0",
+    "sharp": "^0.34.5",
     "typescript": "^4.9.4"
   }
 }
