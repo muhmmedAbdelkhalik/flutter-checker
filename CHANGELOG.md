@@ -14,8 +14,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### Bulk Package Updates
 The most requested feature is here! Update multiple packages at once with smart presets and safety controls.
 
-![Bulk Updates in Action](https://github.com/muhmmedAbdelkhalik/flutter-checker/blob/main/assets/screen_bulk.png?raw=true)
-
 **Multiple Entry Points:**
 - **CodeLens**: Inline actions appear at the top of your `dependencies:` section
   - `📦 Update All Safe (X)` - Updates all patch + minor versions
