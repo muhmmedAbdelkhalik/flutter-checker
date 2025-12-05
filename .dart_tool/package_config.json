@@ -321,8 +321,8 @@
     }
   ],
   "generator": "pub",
-  "generatorVersion": "3.9.0",
+  "generatorVersion": "3.9.2",
   "flutterRoot": "file:///Users/abdelkhalik/fvm/versions/stable",
-  "flutterVersion": "3.35.2",
+  "flutterVersion": "3.35.6",
   "pubCache": "file:///Users/abdelkhalik/.pub-cache"
 }
