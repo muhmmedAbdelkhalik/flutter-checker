@@ -15,6 +15,7 @@ A VS Code extension that helps you identify outdated packages in your Flutter/Da
 
 ## Features
 
+- 🚀 **Bulk Package Updates** *(NEW in v1.3.0)*: Update multiple packages at once with smart presets and safety controls
 - 🔍 **Smart Detection**: Automatically checks for outdated packages when you open or modify `pubspec.yaml` files
 - 🎨 **Color-Coded Updates**: Visual highlighting with different colors for patch (🔧), minor (✨), and major (⚠️) updates
 - 📊 **Rich Hover Information**: Detailed hover tooltips showing current → latest version with update type descriptions
@@ -32,6 +33,35 @@ A VS Code extension that helps you identify outdated packages in your Flutter/Da
    - ✨ **Minor Updates**: New features (backward compatible)
    - ⚠️ **Major Updates**: Breaking changes
 4. **Visual Highlighting**: Outdated packages are highlighted with color-coded underlines, version comparisons, and rich hover tooltips
+
+## Bulk Package Updates
+
+![Bulk Updates in Action](https://github.com/muhmmedAbdelkhalik/flutter-checker/blob/main/assets/screen_bulk.png?raw=true)
+
+Update multiple packages at once with intelligent safety controls and multiple entry points.
+
+### Multiple Entry Points
+- **CodeLens**: Inline actions appear at the top of your dependencies section
+- **Status Bar**: Click the status bar for a quick menu with bulk update options
+- **Command Palette**: Access via `Ctrl+Shift+P` / `Cmd+Shift+P`
+
+### Smart Update Modes
+- **🚀 Update All Safe** - Updates all patch and minor versions (no breaking changes)
+- **✅ Update Patches Only** - Safest option, only bug fixes
+- **📋 Select Packages** - Interactive multi-select with custom presets:
+  - Safe Updates (Patch + Minor)
+  - Patches Only
+  - Custom Selection
+  - Update Everything
+- **Color-Coded Selection** - 🟢 Patch, 🟡 Minor, 🔴 Major updates
+
+### Safety Features
+- Confirmation dialogs with package count breakdowns
+- Preview of all changes before applying
+- Safe updates pre-selected in custom mode
+- Atomic updates (all or nothing)
+- Error handling with detailed reports
+- Automatic `flutter pub get` execution
 
 ## Usage
 
@@ -73,6 +103,9 @@ Real-time status tracking shows package update counts and checking status with c
 ### Commands
 - `Flutter Checker: Check for Outdated Packages` - Manual check
 - `Flutter Checker: Clear Package Highlights` - Remove all highlights
+- `Flutter Checker: Update All Safe Packages (Patch + Minor)` - Bulk update safe packages
+- `Flutter Checker: Update All Patch Versions` - Bulk update patches only
+- `Flutter Checker: Bulk Update Packages...` - Interactive bulk update with presets
 
 ## Configuration
 
